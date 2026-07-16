@@ -1,0 +1,9 @@
+{
+  "appId": "com.arigoni.liquiditybook",
+  "appName": "Liquidity Book",
+  "webDir": "www",
+  "backgroundColor": "#0a0d14",
+  "android": {
+    "backgroundColor": "#0a0d14"
+  }
+}

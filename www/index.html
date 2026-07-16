@@ -1,0 +1,2267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0d14">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Liquidity Book">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 4v3M7 17v3M4.5 7h5v10h-5zM17 2v4M17 18v4M14.5 6h5v12h-5z'/%3E%3C/svg%3E">
+<title>The Liquidity Book</title>
+<style>
+:root{
+  --bg:#0a0d14; --bg2:#0d1220; --panel:#12182a; --panel2:#192138; --border:#242f4a; --border2:#31405f;
+  --text:#e9eef8; --muted:#8b98b3; --green:#34d399; --red:#f87171;
+  --ad-h:0px;
+  --accent:#60a5fa; --accent2:#38bdf8; --gold:#fbbf24; --purple:#a78bfa; --cyan:#22d3ee;
+}
+*{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+html{-webkit-text-size-adjust:100%; background:var(--bg);}
+body{
+  background:
+    radial-gradient(1100px 480px at 50% -10%, rgba(96,165,250,.09), transparent 60%),
+    linear-gradient(180deg, var(--bg2), var(--bg) 420px);
+  min-height:100vh;
+  color:var(--text); font-family:'Inter',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  font-size:14px; padding-bottom:calc(64px + var(--ad-h));
+  touch-action:manipulation; -ms-touch-action:manipulation;
+  overflow-x:hidden;
+}
+body.lock{overflow:hidden;}
+/* ---------- iphone: prevent zoom + lock portrait ---------- */
+@media screen and (orientation:landscape) and (max-width:768px) and (hover:none){#rotate-warning{display:flex !important;}}
+#rotate-warning{display:none;position:fixed;inset:0;z-index:99999;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px;text-align:center;}
+#rotate-warning svg{width:64px;height:64px;stroke:var(--accent);stroke-width:1.5;fill:none;}
+#rotate-warning h2{color:var(--text);font-size:20px;}
+#rotate-warning p{color:var(--muted);font-size:14px;max-width:320px;}
+.ic{width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:none;}
+/* ---------- header ---------- */
+header{display:flex; align-items:center; gap:14px; padding:calc(12px + env(safe-area-inset-top,0px)) 20px 12px; border-bottom:1px solid var(--border);
+  flex-wrap:wrap; position:sticky; top:0; background:rgba(10,13,20,.85); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); z-index:50;}
+.logo{width:36px; height:36px; border-radius:11px; background:linear-gradient(135deg,#3b82f6,#22d3ee);
+  display:flex; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(56,189,248,.35); flex:none;}
+.logo svg{width:20px; height:20px; stroke:#07101d; stroke-width:2; fill:none; stroke-linecap:round;}
+header h1{font-size:16px; font-weight:800; letter-spacing:-.02em; white-space:nowrap;}
+header h1 span{background:linear-gradient(90deg,var(--accent),var(--cyan)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+nav{display:flex; gap:4px; flex-wrap:wrap; background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:4px;}
+nav button{display:flex; align-items:center; gap:7px; background:none; border:none; color:var(--muted);
+  padding:8px 14px; border-radius:9px; cursor:pointer; font-size:13px; font-weight:600; font-family:inherit;}
+nav button .ic{width:16px; height:16px;}
+nav button:hover{color:var(--text);}
+nav button.active{color:#fff; background:linear-gradient(135deg,rgba(96,165,250,.25),rgba(56,189,248,.15)); box-shadow:inset 0 0 0 1px rgba(96,165,250,.4);}
+.strip{margin-left:auto; display:flex; gap:18px; font-size:12px; color:var(--muted);}
+.strip b{font-size:13px; font-variant-numeric:tabular-nums;}
+/* ---------- bottom tab bar (mobile) ---------- */
+.tabbar{display:none; position:fixed; left:14px; right:14px;
+  bottom:calc(12px + env(safe-area-inset-bottom) + var(--ad-h)); z-index:60;
+  background:rgba(18,24,42,.82); backdrop-filter:blur(18px) saturate(1.5); -webkit-backdrop-filter:blur(18px) saturate(1.5);
+  border:1px solid var(--border2); border-radius:26px; padding:7px 6px;
+  box-shadow:0 10px 30px rgba(0,0,0,.45);}
+.tabbar button{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+  background:none; border:none; color:var(--muted); font-size:10px; font-weight:600; font-family:inherit; padding:6px 0; cursor:pointer; border-radius:19px; transition:background .15s;}
+.tabbar button .ic{width:21px; height:21px;}
+.tabbar button:active{background:rgba(96,165,250,.08);}
+.tabbar button.active{color:var(--accent2); background:rgba(96,165,250,.14);}
+/* ---------- layout ---------- */
+main{max-width:1150px; margin:0 auto; padding:20px;}
+.panel{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:16px;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);}
+.panel h2{font-size:14px; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:8px; letter-spacing:-.01em;}
+.panel h2 .ic{color:var(--accent); opacity:.9; width:17px; height:17px;}
+.panel h2 small{color:var(--muted); font-weight:400; margin-left:2px;}
+.grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px;}
+label{display:block; font-size:11px; color:var(--muted); margin-bottom:5px; font-weight:600; text-transform:uppercase; letter-spacing:.04em;}
+input,select,textarea{width:100%; background:var(--bg2); border:1px solid var(--border); border-radius:9px; color:var(--text);
+  padding:9px 11px; font-size:14px; font-family:inherit; transition:border-color .15s;}
+input:focus,select:focus,textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(96,165,250,.15);}
+input:disabled{opacity:.5;}
+textarea{resize:vertical; min-height:80px;}
+/* ---------- buttons ---------- */
+.btnrow{display:flex; gap:6px;}
+.btnrow button{flex:1; background:var(--bg2); border:1px solid var(--border); color:var(--muted); padding:9px 4px;
+  border-radius:9px; cursor:pointer; font-weight:700; font-size:13px; font-family:inherit; transition:all .15s;}
+.btnrow button:active{transform:scale(.96);}
+.btnrow.big button{padding:14px 4px; font-size:15px;}
+.btnrow button.on-long{background:rgba(52,211,153,.16); border-color:var(--green); color:var(--green);}
+.btnrow button.on-short{background:rgba(248,113,113,.16); border-color:var(--red); color:var(--red);}
+.btnrow button.on{background:rgba(96,165,250,.16); border-color:var(--accent); color:var(--accent);}
+.btnrow button.on-tp{background:rgba(52,211,153,.16); border-color:var(--green); color:var(--green);}
+.btnrow button.on-sl{background:rgba(248,113,113,.16); border-color:var(--red); color:var(--red);}
+.primary{display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  background:linear-gradient(135deg,#60a5fa,#38bdf8); color:#07101d; border:none; padding:11px 22px;
+  border-radius:10px; font-weight:800; font-size:14px; font-family:inherit; cursor:pointer;
+  box-shadow:0 4px 16px rgba(56,189,248,.3); transition:all .15s;}
+.primary:hover{filter:brightness(1.08);}
+.primary:active{transform:scale(.97);}
+.primary .ic{width:16px; height:16px; stroke-width:2.6;}
+.ghost{display:inline-flex; align-items:center; justify-content:center; gap:7px; background:var(--panel2);
+  border:1px solid var(--border2); color:var(--muted); padding:10px 16px; border-radius:10px; cursor:pointer;
+  font-family:inherit; font-weight:600; font-size:13px; transition:all .15s;}
+.ghost:hover{color:var(--text); border-color:var(--accent);}
+.ghost .ic{width:15px; height:15px;}
+.ghost.danger{color:var(--red); border-color:rgba(248,113,113,.4);}
+.iconbtn{display:inline-flex; align-items:center; background:none; border:none; cursor:pointer; padding:4px 6px; color:var(--muted); border-radius:6px;}
+.iconbtn:hover{color:var(--text); background:var(--panel2);}
+.iconbtn.danger:hover{color:var(--red);}
+.iconbtn .ic{width:15px; height:15px;}
+.bigcta{display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
+  background:linear-gradient(135deg,#60a5fa,#38bdf8); color:#07101d; border:none; padding:16px;
+  border-radius:16px; font-weight:800; font-size:16px; font-family:inherit; cursor:pointer;
+  box-shadow:0 6px 22px rgba(56,189,248,.35); transition:all .15s; margin-bottom:16px;}
+.bigcta:hover{filter:brightness(1.07); transform:translateY(-1px);}
+.bigcta .ic{width:20px; height:20px; stroke-width:2.6;}
+.pos{color:var(--green);} .neg{color:var(--red);} .flat{color:var(--muted);}
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+table{width:100%; border-collapse:collapse; font-size:13px;}
+th{color:var(--muted); text-align:left; padding:8px; border-bottom:1px solid var(--border); font-size:11px; white-space:nowrap; text-transform:uppercase; letter-spacing:.04em;}
+td{padding:8px; border-bottom:1px solid rgba(36,47,74,.5); white-space:nowrap; font-variant-numeric:tabular-nums;}
+tr:hover td{background:rgba(96,165,250,.04);}
+.tag{display:inline-block; padding:1px 8px; border-radius:20px; font-size:10.5px; font-weight:800; border:1px solid var(--border2); color:var(--muted);}
+.tag.A{color:var(--green); border-color:var(--green); background:rgba(52,211,153,.1);}
+.tag.B{color:var(--gold); border-color:var(--gold); background:rgba(251,191,36,.1);}
+.tag.C{color:var(--red); border-color:var(--red); background:rgba(248,113,113,.1);}
+.note-cell{max-width:200px; overflow:hidden; text-overflow:ellipsis;}
+/* ---------- stat cards ---------- */
+.cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr)); gap:12px; margin-bottom:16px;}
+.card{display:flex; gap:12px; align-items:flex-start; background:var(--panel); border:1px solid var(--border);
+  border-radius:16px; padding:14px; box-shadow:0 8px 24px rgba(0,0,0,.2);}
+.ibox{width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex:none;}
+.ibox .ic{width:19px; height:19px;}
+.ibox.g{background:rgba(52,211,153,.14); color:var(--green);}
+.ibox.b{background:rgba(96,165,250,.14); color:var(--accent);}
+.ibox.pu{background:rgba(167,139,250,.14); color:var(--purple);}
+.ibox.o{background:rgba(251,191,36,.14); color:var(--gold);}
+.ibox.cy{background:rgba(34,211,238,.14); color:var(--cyan);}
+.ibox.r{background:rgba(248,113,113,.14); color:var(--red);}
+.card .k{font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.05em;}
+.card .v{font-size:20px; font-weight:800; margin-top:3px; font-variant-numeric:tabular-nums; letter-spacing:-.02em;}
+.card .s{font-size:11px; color:var(--muted); margin-top:2px;}
+/* ---------- charts ---------- */
+.bars .row{display:grid; grid-template-columns:120px 1fr 88px; align-items:center; gap:10px; margin-bottom:9px; font-size:13px;}
+.bars .lbl{color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right; font-size:12px;}
+.bars .track{height:18px; background:var(--bg2); border-radius:5px; position:relative; overflow:hidden;}
+.bars .bar{position:absolute; top:3px; bottom:3px; left:3px; border-radius:3px;}
+.bars .val{font-weight:700; font-variant-numeric:tabular-nums; font-size:12.5px;}
+.split2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+.insight{display:flex; gap:10px; padding:11px 13px; border-left:3px solid var(--accent); background:var(--bg2);
+  border-radius:0 10px 10px 0; margin-bottom:9px; font-size:13px; line-height:1.55;}
+.insight .ic{width:17px; height:17px; margin-top:2px; color:var(--accent);}
+.insight.warn{border-left-color:var(--red);} .insight.warn .ic{color:var(--red);}
+.insight.good{border-left-color:var(--green);} .insight.good .ic{color:var(--green);}
+/* ---------- calendar ---------- */
+.cal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:10px; flex-wrap:wrap;}
+.cal-head b{font-size:15px;}
+.cal-grid{display:grid; grid-template-columns:repeat(7,1fr) 84px; gap:6px;}
+.cal-grid .dow{text-align:center; font-size:10px; color:var(--muted); font-weight:800; padding:4px 0; text-transform:uppercase; letter-spacing:.06em;}
+.cal-cell{min-height:64px; background:var(--bg2); border:1px solid var(--border); border-radius:9px; padding:5px 7px; font-size:11px; color:var(--muted);}
+.cal-cell.trades{cursor:pointer; transition:all .15s;}
+.cal-cell.trades:hover{border-color:var(--accent); transform:translateY(-1px);}
+.cal-cell .d{font-weight:700;}
+.cal-cell .p{font-size:12.5px; font-weight:800; margin-top:5px; font-variant-numeric:tabular-nums;}
+.cal-cell .c{font-size:9.5px;}
+.cal-cell.win{background:rgba(52,211,153,.09); border-color:rgba(52,211,153,.4);}
+.cal-cell.loss{background:rgba(248,113,113,.09); border-color:rgba(248,113,113,.4);}
+.cal-week{min-height:64px; border-radius:9px; padding:5px 7px; font-size:10px; color:var(--muted); background:var(--panel2); border:1px solid var(--border);}
+.cal-week .p{font-size:12.5px; font-weight:800; margin-top:5px; font-variant-numeric:tabular-nums;}
+/* ---------- filters & chips ---------- */
+.filters{display:flex; gap:9px; flex-wrap:wrap; margin-bottom:14px; align-items:center;}
+.filters input,.filters select{width:auto; min-width:118px;}
+.chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;}
+.chip{display:flex; align-items:center; gap:7px; background:var(--bg2); border:1px solid var(--border2); border-radius:20px; padding:5px 12px; font-size:13px;}
+.chip button{display:flex; background:none; border:none; color:var(--muted); cursor:pointer; padding:0;}
+.chip button:hover{color:var(--red);}
+.chip .ic{width:13px; height:13px;}
+.empty{text-align:center; color:var(--muted); padding:32px 10px; font-size:13.5px; line-height:1.6;}
+.banner{display:flex; justify-content:space-between; align-items:center; gap:10px;
+  background:rgba(251,191,36,.1); border:1px solid rgba(251,191,36,.45); color:var(--gold);
+  border-radius:12px; padding:11px 14px; margin-bottom:16px; font-size:13px;}
+.banner .lft{display:flex; align-items:center; gap:9px;}
+.banner button{background:none; border:1px solid var(--gold); color:var(--gold); border-radius:8px; padding:6px 13px; cursor:pointer; font-family:inherit; font-weight:600; white-space:nowrap;}
+/* ---------- prop accounts ---------- */
+.acct-panel{border:1px solid var(--border2); border-radius:16px; padding:16px; background:linear-gradient(180deg,var(--panel2),var(--panel)); margin-bottom:14px;}
+.acct-panel h3{font-size:15px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; letter-spacing:-.01em;}
+.acct-panel h3 .ic{color:var(--accent);}
+.phase{font-size:10.5px; font-weight:800; padding:2px 10px; border-radius:20px; border:1px solid var(--accent); color:var(--accent); text-transform:uppercase; letter-spacing:.05em;}
+.phase.funded{border-color:var(--green); color:var(--green);}
+.status-badge{font-size:10.5px; font-weight:800; padding:3px 10px; border-radius:20px; letter-spacing:.03em;}
+.status-badge.pass{background:rgba(52,211,153,.18); color:var(--green); border:1px solid var(--green);}
+.status-badge.blown{background:rgba(248,113,113,.18); color:var(--red); border:1px solid var(--red);}
+.pbar{margin-top:13px;}
+.pbar .top{display:flex; justify-content:space-between; gap:8px; font-size:12px; color:var(--muted); margin-bottom:5px;}
+.pbar .top b{color:var(--text); font-variant-numeric:tabular-nums; white-space:nowrap;}
+.pbar .track{height:11px; background:var(--bg); border:1px solid var(--border); border-radius:7px; overflow:hidden;}
+.pbar .fill{height:100%; border-radius:7px; transition:width .4s;}
+.mini-accts{display:grid; grid-template-columns:repeat(auto-fill,minmax(225px,1fr)); gap:12px; margin-bottom:16px;}
+.mini-acct{background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:14px; cursor:pointer; transition:all .15s; box-shadow:0 8px 24px rgba(0,0,0,.2);}
+.mini-acct:hover{border-color:var(--accent); transform:translateY(-2px);}
+.mini-acct .nm{font-weight:700; display:flex; justify-content:space-between; align-items:center; gap:6px; font-size:13.5px;}
+.mini-acct .bal{font-size:20px; font-weight:800; margin:7px 0 3px; font-variant-numeric:tabular-nums; letter-spacing:-.02em;}
+.mini-acct .ln{font-size:12px; color:var(--muted); margin-top:3px; font-variant-numeric:tabular-nums;}
+.acct-editor{background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:12px;}
+.acct-editor .grid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr));}
+.checkline{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); margin-top:10px;}
+.checkline input{width:16px; height:16px; accent-color:var(--accent);}
+.settings-table input{padding:6px 8px; font-size:13px;}
+svg text{font-family:inherit;}
+footer{position:fixed; bottom:var(--ad-h); left:0; right:0; background:rgba(13,18,32,.9); backdrop-filter:blur(10px);
+  border-top:1px solid var(--border); padding:8px 20px; font-size:11.5px; color:var(--muted); text-align:center; z-index:40;}
+/* ---------- P&L share card ---------- */
+#pnlModal{position:fixed; inset:0; z-index:250; background:rgba(4,7,13,.72); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);
+  align-items:center; justify-content:center; padding:20px 16px;}
+#pnlModal .pcard{display:flex; flex-direction:column; gap:14px; max-width:680px; width:100%;}
+#pnlModal img{width:100%; border-radius:18px; box-shadow:0 24px 60px rgba(0,0,0,.55);}
+#pnlModal .prow{display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+/* ---------- bio lock ---------- */
+#bioLock{position:fixed; inset:0; z-index:9999; background:var(--bg); flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:40px;}
+/* ---------- ads ---------- */
+#adNotice{position:fixed; inset:0; z-index:300; background:rgba(4,7,13,.72); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);
+  align-items:center; justify-content:center; padding:24px 16px;}
+#adNotice .card{display:block; background:var(--panel); border:1px solid var(--border2); border-radius:20px; max-width:420px; width:100%;
+  padding:22px; box-shadow:0 24px 60px rgba(0,0,0,.5);}
+#adNotice h3{font-size:16px; letter-spacing:-.01em; display:flex; align-items:center; gap:9px; margin-bottom:12px;}
+#adNotice h3 .ic{color:var(--accent);}
+#adNotice p{color:var(--muted); font-size:14px; line-height:1.6; margin-bottom:10px;}
+#adNotice .primary{width:100%; margin-top:8px;}
+#adPreview{position:fixed; left:0; right:0; bottom:0; height:56px; z-index:70; align-items:center; justify-content:center; gap:9px;
+  background:var(--panel2); border-top:1px solid var(--border2); color:var(--muted); font-size:12px; font-weight:600;}
+#adPreview .badge{border:1px solid var(--border2); border-radius:4px; padding:1px 6px; font-size:10px; letter-spacing:.06em; color:var(--gold);}
+/* ---------- WIZARD ---------- */
+.modal{position:fixed; inset:0; background:rgba(4,7,13,.72); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);
+  z-index:100; display:flex; align-items:flex-start; justify-content:center; overflow-y:auto; padding:24px 16px;}
+.wcard{background:var(--panel); border:1px solid var(--border2); border-radius:20px; width:100%; max-width:540px;
+  padding:20px; margin:auto; box-shadow:0 24px 60px rgba(0,0,0,.5); display:flex; flex-direction:column;}
+.whead{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px;}
+.whead b{font-size:16px; letter-spacing:-.01em; display:flex; align-items:center; gap:9px;}
+.whead b .ic{color:var(--accent);}
+.stepbar{display:flex; gap:5px; margin-bottom:6px;}
+.stepbar div{flex:1; height:4px; border-radius:4px; background:var(--border); cursor:default;}
+.stepbar div.done{background:linear-gradient(90deg,#60a5fa,#38bdf8); cursor:pointer;}
+.steplbl{font-size:11.5px; color:var(--muted); font-weight:600; margin-bottom:14px; text-transform:uppercase; letter-spacing:.05em;}
+.wsummary{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;}
+.wsummary span{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; background:var(--bg2); border:1px solid var(--border);
+  color:var(--muted); border-radius:14px; padding:3px 10px; cursor:pointer; font-weight:600;}
+.wsummary span:hover{border-color:var(--accent); color:var(--text);}
+.wbody h4{font-size:13px; font-weight:700; margin:14px 0 9px; color:var(--text);}
+.wbody h4:first-child{margin-top:0;}
+.wbody .sub{font-size:11.5px; color:var(--muted); font-weight:400; margin-top:2px;}
+.optlist{display:flex; flex-direction:column; gap:8px;}
+.opt{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:13px 14px; border-radius:12px;
+  border:1px solid var(--border); background:var(--bg2); cursor:pointer; font-weight:600; font-size:14px; transition:all .12s;}
+.opt:active{transform:scale(.985);}
+.opt.sel{border-color:var(--accent); background:rgba(96,165,250,.12); box-shadow:0 0 0 1px var(--accent);}
+.opt .ck{width:22px; height:22px; border-radius:50%; border:2px solid var(--border2); display:flex; align-items:center; justify-content:center; flex:none;}
+.opt.sel .ck{border-color:var(--accent); background:var(--accent);}
+.opt.sel .ck .ic{width:13px; height:13px; color:#07101d; stroke-width:3;}
+.optgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:8px;}
+.optgrid button{padding:13px 4px; border-radius:11px; border:1px solid var(--border); background:var(--bg2); color:var(--muted);
+  font-weight:800; font-size:14px; font-family:inherit; cursor:pointer; transition:all .12s;}
+.optgrid button:active{transform:scale(.94);}
+.optgrid button.sel{border-color:var(--accent); background:rgba(96,165,250,.14); color:var(--accent);}
+.stepper{display:flex; align-items:center; gap:10px;}
+.stepper button{width:46px; height:46px; border-radius:12px; border:1px solid var(--border2); background:var(--panel2);
+  color:var(--text); font-size:22px; font-weight:700; cursor:pointer; font-family:inherit;}
+.stepper button:active{transform:scale(.93);}
+.stepper input{text-align:center; font-size:18px; font-weight:800; max-width:90px; padding:11px 6px;}
+.wprev{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; background:var(--bg2); border:1px dashed var(--border2);
+  border-radius:12px; padding:12px 14px; margin-top:14px;}
+.wprev div{font-size:10.5px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.04em;}
+.wprev b{display:block; font-size:15px; margin-top:2px; font-variant-numeric:tabular-nums;}
+.wfoot{display:flex; gap:10px; margin-top:18px;}
+.wfoot .ghost{flex:1;}
+.wfoot .primary{flex:2;}
+.werr{display:none; align-items:center; gap:8px; color:var(--red); background:rgba(248,113,113,.1); border:1px solid rgba(248,113,113,.4);
+  border-radius:10px; padding:9px 12px; font-size:12.5px; font-weight:600; margin-top:12px;}
+.werr .ic{width:15px; height:15px;}
+.review{background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:4px 14px; margin-bottom:4px;}
+.review .rrow{display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid rgba(36,47,74,.5); font-size:13px;}
+.review .rrow:last-child{border-bottom:none;}
+.review .rrow span{color:var(--muted);}
+.review .rrow b{text-align:right; font-variant-numeric:tabular-nums;}
+.toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(90px + var(--ad-h)); z-index:200; display:flex; align-items:center; gap:9px;
+  background:var(--panel2); border:1px solid var(--green); color:var(--green); font-weight:700; font-size:13.5px;
+  padding:11px 20px; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.4); opacity:0; pointer-events:none; transition:opacity .3s;}
+.toast .ic{width:16px; height:16px;}
+/* ---------- screenshots ---------- */
+.shots{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;}
+.shot{position:relative; width:74px; height:74px; border-radius:10px; overflow:hidden; border:1px solid var(--border2); background:var(--bg2);}
+.shot img{width:100%; height:100%; object-fit:cover; display:block;}
+.shot button{position:absolute; top:3px; right:3px; width:20px; height:20px; border-radius:50%; border:none; background:rgba(4,7,13,.75); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;}
+.shot button .ic{width:11px; height:11px;}
+#shotModal{position:fixed; inset:0; z-index:260; background:rgba(4,7,13,.85); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px);
+  flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:18px;}
+#shotModal img{max-width:100%; max-height:74vh; border-radius:14px; box-shadow:0 24px 60px rgba(0,0,0,.55);}
+/* ---------- payouts & consistency ---------- */
+.status-badge.warn{background:rgba(251,191,36,.18); color:var(--gold); border:1px solid var(--gold);}
+.pay-row{display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; margin-top:8px;}
+/* ---------- collapsible settings sections ---------- */
+details.fold{border:1px solid var(--border); border-radius:12px; background:var(--bg2); margin-bottom:10px;}
+details.fold summary{display:flex; align-items:center; gap:9px; padding:12px 14px; cursor:pointer; list-style:none; font-size:13.5px; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none;}
+details.fold summary::-webkit-details-marker{display:none;}
+details.fold summary b{font-weight:700;}
+details.fold summary .fold-sub{color:var(--muted); font-weight:400; font-size:12px; margin-left:auto; text-align:right; font-variant-numeric:tabular-nums;}
+details.fold summary .chev{width:15px; height:15px; color:var(--muted); transition:transform .15s; flex:none;}
+details.fold[open] summary .chev{transform:rotate(90deg);}
+details.fold .fold-body{padding:12px 14px 14px; border-top:1px solid var(--border);}
+.fold-body .grid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr));}
+/* ---------- mobile ---------- */
+@media(max-width:860px){
+  .split2{grid-template-columns:1fr;}
+  .strip{display:none;}
+}
+@media(max-width:720px){
+  nav{display:none;}
+  .tabbar{display:flex;}
+  footer{display:none;}
+  body{padding-bottom:calc(104px + env(safe-area-inset-bottom) + var(--ad-h));}
+  header{padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;}
+  main{padding:12px;}
+  .panel{padding:14px; border-radius:14px;}
+  .grid{grid-template-columns:repeat(2,1fr); gap:10px;}
+  .cards{grid-template-columns:repeat(2,1fr); gap:10px;}
+  .card .v{font-size:17px;}
+  input,select,textarea{font-size:16px;}  /* prevents iOS zoom */
+  .filters input,.filters select{flex:1; min-width:100px;}
+  .bars .row{grid-template-columns:88px 1fr 78px;}
+  .cal-grid{grid-template-columns:repeat(7,1fr) 52px; gap:3px;}
+  .cal-cell,.cal-week{min-height:52px; padding:3px 4px; border-radius:7px;}
+  .cal-cell .p,.cal-week .p{font-size:10px;}
+  .cal-cell .c{display:none;}
+  .modal{padding:0; align-items:stretch;}
+  .wcard{max-width:none; border-radius:0; border:none; min-height:100dvh; margin:0;
+    padding:calc(18px + env(safe-area-inset-top,0px)) 16px calc(20px + env(safe-area-inset-bottom));}
+  .wfoot{position:sticky; bottom:0; background:var(--panel); padding-top:10px; margin-top:auto;}
+  .wprev{grid-template-columns:repeat(3,1fr);}
+  .toast{bottom:calc(100px + env(safe-area-inset-bottom) + var(--ad-h)); width:max-content; max-width:92vw;}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ SVG ICON SET ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-log" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></symbol>
+<symbol id="i-dash" viewBox="0 0 24 24"><path d="M4 20v-6M10 20V4M16 20v-9M22 20H2"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></symbol>
+<symbol id="i-hist" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.6" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="3.6" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="3.6" cy="18" r="1.2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-set" viewBox="0 0 24 24"><path d="M4 7h8M18 7h2M4 17h2M12 17h8"/><circle cx="15" cy="7" r="2.6"/><circle cx="9" cy="17" r="2.6"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+<symbol id="i-next" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2M6 6l1 14a1 1 0 001 1h8a1 1 0 001-1l1-14M10 11v6M14 11v6"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M11 4H5a1 1 0 00-1 1v14a1 1 0 001 1h14a1 1 0 001-1v-6"/><path d="M18.5 2.5a2.1 2.1 0 013 3L12 15l-4 1 1-4z"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12M6 9l6 6 6-6M4 21h16"/></symbol>
+<symbol id="i-upld" viewBox="0 0 24 24"><path d="M12 21V9M6 15l6-6 6 6M4 3h16"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.2 7.6-8 9-4.8-1.4-8-4.5-8-9V6z"/></symbol>
+<symbol id="i-trend" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-9M15 6h6v6"/></symbol>
+<symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6z"/></symbol>
+<symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol>
+<symbol id="i-dollar" viewBox="0 0 24 24"><path d="M12 2v20M17 7c0-2-2.2-3-5-3s-5 1-5 3 2 3 5 3 5 1 5 3-2.2 3-5 3-5-1-5-3"/></symbol>
+<symbol id="i-pct" viewBox="0 0 24 24"><path d="M19 5L5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></symbol>
+<symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18M8 21h8M2 7h20M5 7l-3 6a3.5 3.5 0 007 0zM19 7l-3 6a3.5 3.5 0 007 0z"/></symbol>
+<symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1.2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3L2 21h20zM12 10v5"/><circle cx="12" cy="18.2" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5zM4 19.5A2.5 2.5 0 006.5 22H20v-2.5"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></symbol>
+<symbol id="i-img" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="15" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></symbol>
+</defs></svg>
+
+<header>
+  <div class="logo"><svg viewBox="0 0 24 24"><path d="M7 4v3M7 17v3M4.5 7h5v10h-5zM17 2v4M17 18v4M14.5 6h5v12h-5z"/></svg></div>
+  <h1>The Liquidity <span>Book</span></h1>
+  <nav id="nav">
+    <button data-tab="journal" class="active"><svg class="ic"><use href="#i-log"/></svg>Journal</button>
+    <button data-tab="dashboard"><svg class="ic"><use href="#i-dash"/></svg>Dashboard</button>
+    <button data-tab="calendar"><svg class="ic"><use href="#i-cal"/></svg>Calendar</button>
+    <button data-tab="history"><svg class="ic"><use href="#i-hist"/></svg>History</button>
+    <button data-tab="settings"><svg class="ic"><use href="#i-set"/></svg>Settings</button>
+  </nav>
+  <div class="strip" id="strip"></div>
+</header>
+
+<main>
+  <div id="backupBanner" style="display:none" class="banner">
+    <span class="lft"><svg class="ic"><use href="#i-warn"/></svg>You haven't backed up your journal in a while. Data lives in this browser only.</span>
+    <button onclick="exportJSONToDevice()">Backup now</button>
+  </div>
+
+  <!-- ============ JOURNAL ============ -->
+  <section id="tab-journal">
+    <button class="bigcta" onclick="openWizard()"><svg class="ic"><use href="#i-plus"/></svg>Log Trade</button>
+    <div class="panel">
+      <h2><svg class="ic"><use href="#i-clock"/></svg>Today <small id="todaySummary"></small></h2>
+      <div class="scroll" id="todayTrades"></div>
+    </div>
+  </section>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section id="tab-dashboard" style="display:none">
+    <div class="filters">
+      <label style="margin:0">Account</label>
+      <select id="d-acct" onchange="renderDashboard()"></select>
+    </div>
+    <div id="acctArea"></div>
+    <div class="cards" id="statCards"></div>
+    <div class="panel"><h2><svg class="ic"><use href="#i-trend"/></svg>Equity Curve <small>cumulative net P&L</small></h2><div id="equity"></div></div>
+    <div class="split2">
+      <div class="panel"><h2><svg class="ic"><use href="#i-pulse"/></svg>Discipline & Psychology</h2><div id="insights"></div></div>
+      <div class="panel"><h2><svg class="ic"><use href="#i-zap"/></svg>P&L by Setup</h2><div class="bars" id="bySetup"></div></div>
+    </div>
+    <div class="split2">
+      <div class="panel"><h2><svg class="ic"><use href="#i-dash"/></svg>P&L by Instrument</h2><div class="bars" id="bySym"></div></div>
+      <div class="panel"><h2><svg class="ic"><use href="#i-cal"/></svg>P&L by Weekday</h2><div class="bars" id="byDay"></div></div>
+    </div>
+  </section>
+
+  <!-- ============ CALENDAR ============ -->
+  <section id="tab-calendar" style="display:none">
+    <div class="panel">
+      <div class="cal-head">
+        <button class="ghost" onclick="calMove(-1)"><svg class="ic"><use href="#i-back"/></svg></button>
+        <b id="calTitle"></b>
+        <select id="c-acct" onchange="renderCalendar()" style="width:auto"></select>
+        <button class="ghost" onclick="calMove(1)"><svg class="ic"><use href="#i-next"/></svg></button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <p style="margin-top:12px; color:var(--muted); font-size:12px">Tap a day to see its trades in History.</p>
+    </div>
+  </section>
+
+  <!-- ============ HISTORY ============ -->
+  <section id="tab-history" style="display:none">
+    <div class="panel">
+      <h2><svg class="ic"><use href="#i-hist"/></svg>Trade History <small id="histCount"></small></h2>
+      <div class="filters">
+        <select id="h-acct" onchange="renderHistory()"></select>
+        <input type="date" id="h-date" onchange="renderHistory()" title="Filter by date">
+        <select id="h-sym" onchange="renderHistory()"><option value="">All instruments</option></select>
+        <select id="h-setup" onchange="renderHistory()"><option value="">All setups</option></select>
+        <select id="h-result" onchange="renderHistory()">
+          <option value="">All results</option><option value="win">Wins</option><option value="loss">Losses</option>
+        </select>
+        <input type="text" id="h-search" placeholder="Search notes…" oninput="renderHistory()">
+        <button class="ghost" onclick="clearFilters()"><svg class="ic"><use href="#i-x"/></svg>Reset</button>
+        <button class="ghost" onclick="exportCSV()"><svg class="ic"><use href="#i-down"/></svg>CSV</button>
+        <button class="ghost" onclick="document.getElementById('impFile').click()"><svg class="ic"><use href="#i-upld"/></svg>Import</button>
+      </div>
+      <div class="scroll"><div id="histTable"></div></div>
+    </div>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section id="tab-settings" style="display:none">
+    <div class="panel">
+      <h2><svg class="ic"><use href="#i-wallet"/></svg>Prop Firm Accounts <small>enter your firm's rules — progress & drawdown auto-tracked</small></h2>
+      <div id="acctList"></div>
+      <details class="fold">
+        <summary><svg class="ic" style="color:var(--accent)"><use href="#i-plus"/></svg><b>Add account</b><span class="fold-sub">enter your firm's rules</span><svg class="ic chev"><use href="#i-next"/></svg></summary>
+        <div class="fold-body">
+        <div class="grid">
+          <div><label>Name</label><input type="text" id="na-name" placeholder="e.g. Apex 50K #1"></div>
+          <div><label>Account size $</label><input type="number" id="na-size" step="any" placeholder="50000"></div>
+          <div><label>Profit target $</label><input type="number" id="na-target" step="any" placeholder="3000"></div>
+          <div><label>Max drawdown $</label><input type="number" id="na-dd" step="any" placeholder="2500"></div>
+          <div><label>Drawdown type</label><select id="na-ddtype">
+            <option value="intraday">Trailing — trade-to-trade</option>
+            <option value="eod">Trailing — end of day</option>
+            <option value="static">Static</option>
+          </select></div>
+          <div><label>Daily loss $ (0 = none)</label><input type="number" id="na-dl" step="any" value="0"></div>
+          <div><label>Min trading days (0 = none)</label><input type="number" id="na-days" step="1" value="0"></div>
+          <div><label>Consistency % (0 = none)</label><input type="number" id="na-consist" step="1" min="0" max="100" value="0" placeholder="30"></div>
+          <div><label>Phase</label><select id="na-phase"><option>Evaluation</option><option>Funded</option></select></div>
+        </div>
+        <div class="checkline"><input type="checkbox" id="na-cap"><span>Trailing stops once it reaches starting balance</span></div>
+        <div style="margin-top:14px"><button class="primary" onclick="addAccount()"><svg class="ic"><use href="#i-plus"/></svg>Add Account</button></div>
+        </div>
+      </details>
+    </div>
+    <div class="panel">
+      <h2><svg class="ic"><use href="#i-set"/></svg>Defaults</h2>
+      <div class="grid">
+        <div><label>Default contracts</label><input type="number" id="s-qty" min="1" step="1" onchange="saveDefaults()"></div>
+        <div><label>Commission / contract / side ($)</label><input type="number" id="s-comm" min="0" step="0.01" onchange="saveDefaults()"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2><svg class="ic"><use href="#i-dash"/></svg>Instruments <small>$/point = tick value ÷ tick size</small></h2>
+      <details class="fold">
+        <summary><b>View / edit instruments</b><span class="fold-sub" id="instCount"></span><svg class="ic chev"><use href="#i-next"/></svg></summary>
+        <div class="fold-body">
+        <div class="scroll">
+        <table class="settings-table"><thead><tr><th>Symbol</th><th>Name</th><th>Tick size</th><th>Tick value $</th><th>$/point</th><th></th></tr></thead>
+        <tbody id="instRows"></tbody></table></div>
+        <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap">
+          <input type="text" id="ni-sym" placeholder="Symbol" style="width:90px">
+          <input type="text" id="ni-name" placeholder="Name" style="width:170px">
+          <input type="number" id="ni-ts" placeholder="Tick size" step="any" style="width:100px">
+          <input type="number" id="ni-tv" placeholder="Tick $" step="any" style="width:90px">
+          <button class="ghost" onclick="addInstrument()"><svg class="ic"><use href="#i-plus"/></svg>Add</button>
+        </div>
+        </div>
+      </details>
+    </div>
+    <div class="panel">
+      <h2><svg class="ic"><use href="#i-book"/></svg>Setups / Playbook</h2>
+      <div class="chips" id="setupChips"></div>
+      <div style="display:flex; gap:8px">
+        <input type="text" id="ns-name" placeholder="New setup name" style="max-width:250px">
+        <button class="ghost" onclick="addSetup()"><svg class="ic"><use href="#i-plus"/></svg>Add</button>
+      </div>
+    </div>
+    <div class="panel" id="appPanel" style="display:none">
+      <h2><svg class="ic"><use href="#i-set"/></svg>App</h2>
+      <div class="checkline" style="margin-top:0"><input type="checkbox" id="ap-notif" onchange="uiNotifChanged()"><span>Daily reminder to log trades</span></div>
+      <div style="max-width:170px; margin-top:10px"><label>Reminder time</label><input type="time" id="ap-time" onchange="uiNotifChanged()"></div>
+      <div class="checkline" style="margin-top:14px"><input type="checkbox" id="ap-bio" onchange="uiBioChanged()"><span>Require fingerprint / face unlock on open</span></div>
+      <div style="margin-top:16px">
+        <button class="ghost" onclick="watchAdFree()"><svg class="ic"><use href="#i-zap"/></svg>Watch an ad — hide banner ads for 12h</button>
+        <p id="ap-rewardStatus" style="color:var(--muted); font-size:12px; margin-top:8px"></p>
+      </div>
+      <div style="margin-top:16px">
+        <button class="ghost" onclick="manageConsent()"><svg class="ic"><use href="#i-set"/></svg>Manage ad consent</button>
+        <p style="color:var(--muted); font-size:12px; margin-top:8px">Change or withdraw your ad personalisation choice (where applicable).</p>
+      </div>
+    </div>
+    <div class="panel">
+      <h2><svg class="ic"><use href="#i-db"/></svg>Data</h2>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:12px; line-height:1.6">
+        Your journal is stored on this device (and mirrored to durable app storage in the mobile app). Back up regularly anyway — a backup file is the only thing that survives losing the device. "Save backup to Files" writes to Documents/The Liquidity Book; "Backup — share" opens the share sheet (Drive, email, …). Trade screenshots live in app storage and are not included in the JSON backup.
+      </p>
+      <div style="display:flex; gap:10px; flex-wrap:wrap">
+        <button class="primary" onclick="exportJSONToDevice()"><svg class="ic"><use href="#i-db"/></svg>Save backup to Files</button>
+        <button class="ghost" onclick="exportJSON()"><svg class="ic"><use href="#i-down"/></svg>Backup — share</button>
+        <button class="ghost" onclick="document.getElementById('importFile').click()"><svg class="ic"><use href="#i-upld"/></svg>Restore backup</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+        <button class="ghost" onclick="exportCSV()"><svg class="ic"><use href="#i-down"/></svg>Export CSV</button>
+        <button class="ghost" onclick="document.getElementById('impFile').click()"><svg class="ic"><use href="#i-upld"/></svg>Import CSV</button>
+        <input type="file" id="impFile" accept=".csv,text/csv" style="display:none" onchange="openImportFile(event)">
+        <button class="ghost danger" onclick="wipeAll()"><svg class="ic"><use href="#i-trash"/></svg>Delete all data</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ LOG TRADE WIZARD ============ -->
+<div id="wizModal" class="modal" style="display:none">
+  <div class="wcard">
+    <div class="whead">
+      <b><svg class="ic"><use href="#i-log"/></svg><span id="wizTitle">Log a Trade</span></b>
+      <button class="iconbtn" onclick="closeWizard()" title="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="stepbar" id="wizStepbar"></div>
+    <div class="steplbl" id="wizStepLbl"></div>
+    <div class="wsummary" id="wizSummary"></div>
+    <div class="wbody" id="wizBody"></div>
+    <div class="werr" id="wizErr"><svg class="ic"><use href="#i-warn"/></svg><span id="wizErrTxt"></span></div>
+    <div class="wfoot">
+      <button class="ghost" id="wizBackBtn" onclick="wizBack()"><svg class="ic"><use href="#i-back"/></svg>Back</button>
+      <button class="primary" id="wizNextBtn" onclick="wizNext()"><span id="wizNextLbl">Continue</span><svg class="ic"><use href="#i-next"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><svg class="ic"><use href="#i-check"/></svg><span id="toastTxt">Saved</span></div>
+
+<!-- mobile bottom tab bar -->
+<div class="tabbar" id="tabbar">
+  <button data-tab="journal" class="active"><svg class="ic"><use href="#i-log"/></svg>Journal</button>
+  <button data-tab="dashboard"><svg class="ic"><use href="#i-dash"/></svg>Stats</button>
+  <button data-tab="calendar"><svg class="ic"><use href="#i-cal"/></svg>Calendar</button>
+  <button data-tab="history"><svg class="ic"><use href="#i-hist"/></svg>History</button>
+  <button data-tab="settings"><svg class="ic"><use href="#i-set"/></svg>Settings</button>
+</div>
+
+<footer>All data stays on your machine · Back up from Settings · Not financial advice</footer>
+
+<script src="js/capacitor-core.js"></script>
+<script src="js/capacitor-app.js"></script>
+<script>var app = window.capacitorApp; /* dependency shim for biometric plugin */</script>
+<script src="js/biometric-auth.js"></script>
+<script>
+'use strict';
+/* ================= STATE ================= */
+const LS_TRADES='ftj_trades', LS_SET='ftj_settings';
+const DEFAULT_SETTINGS = {
+  qty:1, commPerSide:0.85, lastBackup:0, lastAccts:[],
+  accounts:[],
+  instruments:[
+    {sym:'MES', name:'Micro E-mini S&P 500', ts:0.25, tv:1.25},
+    {sym:'MNQ', name:'Micro E-mini Nasdaq-100', ts:0.25, tv:0.50},
+    {sym:'MYM', name:'Micro E-mini Dow', ts:1, tv:0.50},
+    {sym:'M2K', name:'Micro E-mini Russell 2000', ts:0.10, tv:0.50},
+    {sym:'ES',  name:'E-mini S&P 500', ts:0.25, tv:12.50},
+    {sym:'NQ',  name:'E-mini Nasdaq-100', ts:0.25, tv:5.00},
+    {sym:'YM',  name:'E-mini Dow', ts:1, tv:5.00},
+    {sym:'RTY', name:'E-mini Russell 2000', ts:0.10, tv:5.00},
+    {sym:'CL',  name:'Crude Oil', ts:0.01, tv:10.00},
+    {sym:'MCL', name:'Micro Crude Oil', ts:0.01, tv:1.00},
+    {sym:'GC',  name:'Gold', ts:0.10, tv:10.00},
+    {sym:'MGC', name:'Micro Gold', ts:0.10, tv:1.00}
+  ],
+  setups:['Opening Range Breakout','VWAP Pullback','Support/Resistance','Breakout','Trend Continuation','Reversal','News Play','Other']
+};
+const EMOTIONS=['Calm','Confident','Neutral','FOMO','Revenge','Anxious','Impatient','Tired'];
+let settings = load(LS_SET, DEFAULT_SETTINGS);
+if(!Array.isArray(settings.accounts)) settings.accounts=[];
+if(!Array.isArray(settings.lastAccts)) settings.lastAccts=[];
+migrateAccounts();
+let trades = load(LS_TRADES, []).map(migrateTrade);
+function migrateAccounts(){
+  settings.accounts.forEach(a=>{
+    if(!Array.isArray(a.adj)) a.adj=[];
+    a.consistPct = +a.consistPct||0;
+  });
+}
+let calY, calM;
+
+function load(k,fb){ try{ const v=JSON.parse(localStorage.getItem(k)); return v==null?structuredClone(fb):v; }catch(e){ return structuredClone(fb); } }
+function persist(){ localStorage.setItem(LS_TRADES, JSON.stringify(trades)); localStorage.setItem(LS_SET, JSON.stringify(settings)); }
+
+/* migrate v1 trades (entry/exit prices) to points-based */
+function migrateTrade(t){
+  if(t.outcome!==undefined) return t;
+  const resPts = t.ticks!=null && inst(t.sym) ? +(t.ticks*inst(t.sym).ts).toFixed(4) : 0;
+  const slPts = (t.stop!=null && t.entry!=null) ? +Math.abs(t.entry-t.stop).toFixed(4) : null;
+  return {id:t.id, date:t.date, time:t.time||'', acct:t.acct||'', sym:t.sym, dir:t.dir, qty:t.qty,
+    slPts, tpPts:null, outcome:'manual', resultPts:resPts,
+    setup:t.setup, grade:t.grade, plan:t.plan, emotion:t.emotion, note:t.note||'',
+    gross:t.gross, comm:t.comm, net:t.net, r:t.r??null};
+}
+
+/* ================= HELPERS ================= */
+const $=id=>document.getElementById(id);
+const ic=n=>`<svg class="ic"><use href="#${n}"/></svg>`;
+const fmt$=v=>(v<0?'-$':'$')+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmt$0=v=>(v<0?'-$':'$')+Math.abs(v).toLocaleString('en-US',{maximumFractionDigits:0});
+const cls=v=>v>0?'pos':(v<0?'neg':'flat');
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const pts=v=>v==null?'—':(+v).toLocaleString('en-US',{maximumFractionDigits:2});
+const todayStr=()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const nowTime=()=>{ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
+function inst(sym){ return settings.instruments.find(i=>i.sym===sym); }
+function pointVal(sym){ const i=inst(sym); return i? i.tv/i.ts : 0; }
+function acct(id){ return settings.accounts.find(a=>a.id===id); }
+function acctName(id){ const a=acct(id); return a?a.name:'—'; }
+function sortTrades(a){ return [...a].sort((x,y)=> (x.date+(x.time||''))<(y.date+(y.time||''))?-1: (x.date+(x.time||''))>(y.date+(y.time||''))?1: x.id-y.id); }
+function byAcct(list, sel){
+  if(sel==='') return list;
+  if(sel==='none') return list.filter(t=>!t.acct);
+  return list.filter(t=>t.acct===sel);
+}
+function clamp(v,a,b){ return Math.min(b,Math.max(a,v)); }
+function toast(msg){ $('toastTxt').textContent=msg; const t=$('toast'); t.style.opacity=1; setTimeout(()=>t.style.opacity=0,2200); }
+
+function calc(sym, qty, slPts, resultPts){
+  const pv=pointVal(sym); if(!pv||!qty||isNaN(resultPts)) return null;
+  const gross = resultPts*pv*qty;
+  const comm = settings.commPerSide*2*qty;
+  const net = gross-comm;
+  let r=null, risk=null;
+  if(slPts>0){ risk = slPts*pv*qty; r = net/risk; }
+  return {pv, gross, comm, net, r, risk};
+}
+
+/* ================= WIZARD ================= */
+const STEPS=['Accounts','Market','Trade','Context','Note'];
+let wiz=null;
+
+function blankWiz(){
+  return {step:1, maxStep:1, editingId:null,
+    accts:settings.lastAccts.filter(id=>acct(id)),
+    date:todayStr(), time:nowTime(),
+    sym:settings.instruments.length?settings.instruments[0].sym:'', dir:'L',
+    qty:settings.qty, sl:null, tp:null, outcome:null, res:null,
+    setup:settings.setups[0]||'Other', grade:'B', plan:true, emotion:'Calm', note:'',
+    imgs:[], pending:{}, origImgs:[]};
+}
+
+function openWizard(editId){
+  if(editId!=null){
+    const t=trades.find(x=>x.id===editId); if(!t) return;
+    wiz={step:1, maxStep:5, editingId:editId,
+      accts:t.acct?[t.acct]:[], date:t.date, time:t.time||'',
+      sym:t.sym, dir:t.dir, qty:t.qty, sl:t.slPts, tp:t.tpPts,
+      outcome:t.outcome, res:t.resultPts,
+      setup:t.setup, grade:t.grade, plan:t.plan, emotion:t.emotion, note:t.note,
+      imgs:[...(t.imgs||[])], pending:{}, origImgs:[...(t.imgs||[])]};
+  } else {
+    wiz=blankWiz();
+  }
+  $('wizTitle').textContent = editId!=null?'Edit Trade':'Log a Trade';
+  $('wizModal').style.display='flex';
+  document.body.classList.add('lock');
+  renderWizard();
+}
+function closeWizard(){ wiz=null; $('wizModal').style.display='none'; document.body.classList.remove('lock'); }
+function wizErr(msg){
+  const e=$('wizErr'); if(!msg){ e.style.display='none'; return; }
+  $('wizErrTxt').textContent=msg; e.style.display='flex';
+}
+function wizGo(n){ if(!wiz||n<1||n>wiz.maxStep) return; wiz.step=n; wizErr(null); renderWizard(); }
+function wizBack(){ if(wiz.step>1){ wiz.step--; wizErr(null); renderWizard(); } else closeWizard(); }
+function wizValidate(step){
+  if(step===2){ if(!wiz.sym) return 'Pick an instrument.'; }
+  if(step===3){
+    if(!wiz.qty||wiz.qty<1) return 'Contracts must be at least 1.';
+    if(!wiz.outcome) return 'Pick the outcome: TP hit, SL hit, or Manual.';
+    if(wiz.outcome==='tp'&&(!wiz.tp||wiz.tp<=0)) return 'TP points required for a TP-hit trade.';
+    if(wiz.outcome==='sl'&&(!wiz.sl||wiz.sl<=0)) return 'SL points required for an SL-hit trade.';
+    if(wiz.res==null||isNaN(wiz.res)) return 'Result points missing.';
+  }
+  return null;
+}
+function wizNext(){
+  const err=wizValidate(wiz.step);
+  if(err){ wizErr(err); return; }
+  wizErr(null);
+  if(wiz.step===5){ saveWizard(); return; }
+  wiz.step++; wiz.maxStep=Math.max(wiz.maxStep,wiz.step);
+  renderWizard();
+}
+
+function wizToggleAcct(id){
+  if(wiz.editingId!=null){ wiz.accts = id?[id]:[]; }
+  else if(id===''){ wiz.accts=[]; }
+  else {
+    const i=wiz.accts.indexOf(id);
+    if(i>=0) wiz.accts.splice(i,1); else wiz.accts.push(id);
+  }
+  renderWizard();
+}
+function wizSetSym(s){ wiz.sym=s; renderWizard(); }
+function wizSetDir(d){ wiz.dir=d; renderWizard(); }
+function wizQty(d){ wiz.qty=Math.max(1,(+wiz.qty||1)+d); renderWizard(); }
+function wizOutcome(o){
+  wiz.outcome=o;
+  if(o==='tp') wiz.res=wiz.tp??null;
+  if(o==='sl') wiz.res=wiz.sl!=null?-wiz.sl:null;
+  renderWizard();
+  if(o==='manual'){ const r=$('w-res'); if(r){ r.focus(); } }
+}
+function wizNum(k,v){
+  const n=parseFloat(v);
+  wiz[k]=isNaN(n)?null:n;
+  if(k==='sl'&&wiz.outcome==='sl') wiz.res=wiz.sl!=null?-wiz.sl:null;
+  if(k==='tp'&&wiz.outcome==='tp') wiz.res=wiz.tp??null;
+  if(k==='qty') wiz.qty=Math.max(1,Math.round(n)||1);
+  updateWizPreview();
+}
+function wizSet(k,v){ wiz[k]=v; if(['setup','grade','emotion'].includes(k)||k==='plan') renderWizard(); }
+
+function updateWizPreview(){
+  const el=$('wizPrev'); if(!el) return;
+  const c=calc(wiz.sym, wiz.qty, wiz.sl, wiz.res);
+  if(!wiz.outcome||!c){ el.innerHTML=`<div style="grid-column:1/-1; text-transform:none; letter-spacing:0; font-weight:400; font-size:12.5px">Live P&L appears once contracts, points and outcome are set.</div>`; return; }
+  el.innerHTML=`
+    <div>Net P&L<b class="${cls(c.net)}">${fmt$(c.net)}</b></div>
+    <div>R-multiple<b class="${c.r==null?'flat':cls(c.r)}">${c.r==null?'—':c.r.toFixed(2)+'R'}</b></div>
+    <div>Risk (SL)<b class="flat">${c.risk==null?'—':fmt$(c.risk)}</b></div>
+    <div>$/point<b class="flat">${fmt$(c.pv)}</b></div>
+    <div>Gross<b class="${cls(c.gross)}">${fmt$(c.gross)}</b></div>
+    <div>Comm.<b class="flat">${fmt$(-c.comm)}</b></div>`;
+}
+
+function wizSummaryHTML(){
+  const out=[];
+  const push=(step,txt)=>out.push(`<span onclick="wizGo(${step})">${txt}</span>`);
+  if(wiz.maxStep>=1){
+    push(1, wiz.accts.length ? esc(wiz.accts.map(acctName).join(' + ')) : 'No account');
+    push(1, esc(wiz.date)+(wiz.time?' '+esc(wiz.time):''));
+  }
+  if(wiz.maxStep>=2 && wiz.sym) push(2, `${esc(wiz.sym)} ${wiz.dir==='L'?'LONG':'SHORT'}`);
+  if(wiz.maxStep>=3 && wiz.outcome){
+    push(3, `${wiz.qty}x · SL ${pts(wiz.sl)} / TP ${pts(wiz.tp)} · ${wiz.outcome.toUpperCase()}${wiz.res!=null?' '+(wiz.res>0?'+':'')+pts(wiz.res)+'pts':''}`);
+  }
+  if(wiz.maxStep>=4 && wiz.step>3) push(4, `${esc(wiz.setup)} · ${wiz.grade} · ${wiz.plan?'Plan ✓':'Plan ✗'} · ${esc(wiz.emotion)}`);
+  return out.join('');
+}
+
+function renderWizard(){
+  if(!wiz) return;
+  $('wizStepbar').innerHTML = STEPS.map((s,i)=>`<div class="${i<wiz.maxStep?'done':''}" ${i<wiz.maxStep?`onclick="wizGo(${i+1})"`:''} title="${s}"></div>`).join('');
+  $('wizStepLbl').textContent = `Step ${wiz.step} of 5 — ${STEPS[wiz.step-1]}`;
+  $('wizSummary').innerHTML = wizSummaryHTML();
+  $('wizBackBtn').innerHTML = wiz.step===1 ? ic('i-x')+'Cancel' : ic('i-back')+'Back';
+  $('wizNextLbl').textContent = wiz.step===5 ? (wiz.editingId!=null?'Update Trade':'Save Trade') : 'Continue';
+  const body=$('wizBody');
+  if(wiz.step===1) body.innerHTML=stepAccounts();
+  if(wiz.step===2) body.innerHTML=stepMarket();
+  if(wiz.step===3){ body.innerHTML=stepTrade(); updateWizPreview(); }
+  if(wiz.step===4) body.innerHTML=stepContext();
+  if(wiz.step===5){ body.innerHTML=stepNote(); renderWizShots(); }
+}
+
+function stepAccounts(){
+  const multi = wiz.editingId==null;
+  let html=`<h4>${multi?'Which account(s) is this trade on?':'Which account is this trade on?'}
+    <div class="sub">${multi?'Select several to copy the trade to each account.':'Editing affects this single trade record.'}</div></h4>
+  <div class="optlist">`;
+  html+=settings.accounts.map(a=>{
+    const s=acctStatus(a);
+    const sel=wiz.accts.includes(a.id);
+    return `<div class="opt ${sel?'sel':''}" onclick="wizToggleAcct('${a.id}')">
+      <div><b>${esc(a.name)}</b><div class="sub">${fmt$0(s.bal)} · ${a.phase}${s.blown?' · <span class=neg>BLOWN</span>':''}${s.passed?' · <span class=pos>PASSED ✓</span>':''}</div></div>
+      <div class="ck">${sel?ic('i-check'):''}</div></div>`;
+  }).join('');
+  const noneSel=wiz.accts.length===0;
+  html+=`<div class="opt ${noneSel?'sel':''}" onclick="wizToggleAcct('')">
+    <div><b>No account</b><div class="sub">Personal / unassigned</div></div>
+    <div class="ck">${noneSel?ic('i-check'):''}</div></div></div>`;
+  if(!settings.accounts.length) html+=`<p style="color:var(--muted); font-size:12px; margin-top:10px">Add prop firm accounts in Settings to track eval progress & drawdown.</p>`;
+  html+=`<h4>When?</h4>
+  <div style="display:flex; gap:10px">
+    <div style="flex:1"><label>Date</label><input type="date" value="${wiz.date}" onchange="wiz.date=this.value"></div>
+    <div style="flex:1"><label>Time (opt.)</label><input type="time" value="${wiz.time}" onchange="wiz.time=this.value"></div>
+  </div>`;
+  return html;
+}
+
+function stepMarket(){
+  return `<h4>Instrument</h4>
+  <div class="optgrid">${settings.instruments.map(i=>
+    `<button class="${wiz.sym===i.sym?'sel':''}" onclick="wizSetSym('${esc(i.sym)}')" title="${esc(i.name)}">${esc(i.sym)}</button>`).join('')}
+  </div>
+  <p style="color:var(--muted); font-size:12px; margin-top:8px">${wiz.sym?esc((inst(wiz.sym)||{}).name||'')+' · '+fmt$(pointVal(wiz.sym))+'/point':''}</p>
+  <h4>Direction</h4>
+  <div class="btnrow big">
+    <button class="${wiz.dir==='L'?'on-long':''}" onclick="wizSetDir('L')">▲ LONG</button>
+    <button class="${wiz.dir==='S'?'on-short':''}" onclick="wizSetDir('S')">▼ SHORT</button>
+  </div>`;
+}
+
+function stepTrade(){
+  return `<h4>Contracts</h4>
+  <div class="stepper">
+    <button onclick="wizQty(-1)">−</button>
+    <input type="number" min="1" step="1" value="${wiz.qty}" oninput="wizNum('qty',this.value)">
+    <button onclick="wizQty(1)">+</button>
+  </div>
+  <h4>Bracket (points)</h4>
+  <div style="display:flex; gap:10px">
+    <div style="flex:1"><label style="color:var(--red)">SL points</label>
+      <input type="number" step="any" min="0" inputmode="decimal" placeholder="10" value="${wiz.sl??''}" oninput="wizNum('sl',this.value)"></div>
+    <div style="flex:1"><label style="color:var(--green)">TP points</label>
+      <input type="number" step="any" min="0" inputmode="decimal" placeholder="20" value="${wiz.tp??''}" oninput="wizNum('tp',this.value)"></div>
+  </div>
+  <h4>Outcome</h4>
+  <div class="btnrow big">
+    <button class="${wiz.outcome==='tp'?'on-tp':''}" onclick="wizOutcome('tp')">TP hit ✓</button>
+    <button class="${wiz.outcome==='sl'?'on-sl':''}" onclick="wizOutcome('sl')">SL hit ✗</button>
+    <button class="${wiz.outcome==='manual'?'on':''}" onclick="wizOutcome('manual')">Manual</button>
+  </div>
+  ${wiz.outcome==='manual'?`<div style="margin-top:10px"><label>Result (points, + or −)</label>
+    <input type="number" id="w-res" step="any" inputmode="decimal" placeholder="e.g. 12.5 or -4" value="${wiz.res??''}" oninput="wizNum('res',this.value)"></div>`:''}
+  <div class="wprev" id="wizPrev"></div>`;
+}
+
+function stepContext(){
+  return `<h4>Setup</h4>
+  <div class="optgrid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr))">${settings.setups.map(s=>
+    `<button style="font-size:12.5px; font-weight:600" class="${wiz.setup===s?'sel':''}" onclick="wizSet('setup','${esc(s).replace(/'/g,"\\'")}')">${esc(s)}</button>`).join('')}
+  </div>
+  <h4>Grade <span class="sub" style="display:inline">— quality of the setup, not the result</span></h4>
+  <div class="btnrow big">
+    <button class="${wiz.grade==='A'?'on':''}" onclick="wizSet('grade','A')">A</button>
+    <button class="${wiz.grade==='B'?'on':''}" onclick="wizSet('grade','B')">B</button>
+    <button class="${wiz.grade==='C'?'on':''}" onclick="wizSet('grade','C')">C</button>
+  </div>
+  <h4>Did you follow your plan?</h4>
+  <div class="btnrow big">
+    <button class="${wiz.plan?'on-tp':''}" onclick="wizSet('plan',true)">✓ Yes</button>
+    <button class="${!wiz.plan?'on-sl':''}" onclick="wizSet('plan',false)">✗ No</button>
+  </div>
+  <h4>Emotion going in</h4>
+  <div class="optgrid" style="grid-template-columns:repeat(auto-fill,minmax(96px,1fr))">${EMOTIONS.map(e=>
+    `<button style="font-size:12.5px; font-weight:600" class="${wiz.emotion===e?'sel':''}" onclick="wizSet('emotion','${e}')">${e}</button>`).join('')}
+  </div>`;
+}
+
+function stepNote(){
+  const c=calc(wiz.sym, wiz.qty, wiz.sl, wiz.res);
+  const n=wiz.accts.length||1;
+  return `<h4>Note <span class="sub" style="display:inline">— optional, but future-you will thank you</span></h4>
+  <textarea id="w-note" maxlength="400" placeholder="What did you see? What would you repeat or change?" oninput="wiz.note=this.value">${esc(wiz.note)}</textarea>
+  <h4>Screenshots <span class="sub" style="display:inline">— chart snaps, order fills (max 6)</span></h4>
+  <div class="shots" id="wizShots"></div>
+  <button class="ghost" type="button" onclick="document.getElementById('wizImg').click()">${ic('i-img')}Add screenshot</button>
+  <input type="file" id="wizImg" accept="image/*" multiple style="display:none" onchange="wizAddImgs(event)">
+  <h4>Review</h4>
+  <div class="review">
+    <div class="rrow"><span>Account${wiz.accts.length>1?'s':''}</span><b>${wiz.accts.length?esc(wiz.accts.map(acctName).join(', ')):'No account'}</b></div>
+    <div class="rrow"><span>Market</span><b>${esc(wiz.sym)} ${wiz.dir==='L'?'LONG':'SHORT'} · ${wiz.qty} contract${wiz.qty>1?'s':''}</b></div>
+    <div class="rrow"><span>Bracket</span><b>SL ${pts(wiz.sl)} / TP ${pts(wiz.tp)} pts</b></div>
+    <div class="rrow"><span>Outcome</span><b>${wiz.outcome?wiz.outcome.toUpperCase():'—'} · ${wiz.res!=null?(wiz.res>0?'+':'')+pts(wiz.res)+' pts':'—'}</b></div>
+    <div class="rrow"><span>Net P&L ${wiz.accts.length>1?'(per account)':''}</span><b class="${c?cls(c.net):''}">${c?fmt$(c.net):'—'}${c&&c.r!=null?' · '+c.r.toFixed(2)+'R':''}</b></div>
+    <div class="rrow"><span>Context</span><b>${esc(wiz.setup)} · ${wiz.grade} · ${wiz.plan?'Plan ✓':'Plan ✗'} · ${esc(wiz.emotion)}</b></div>
+    ${wiz.accts.length>1?`<div class="rrow"><span>Will be logged to</span><b>${n} accounts (${fmt$(c?c.net*n:0)} total)</b></div>`:''}
+  </div>`;
+}
+
+function saveWizard(){
+  const c=calc(wiz.sym, wiz.qty, wiz.sl, wiz.res);
+  if(!c){ wizErr('Something is off — check instrument and contracts.'); return; }
+  const imgs=[...(wiz.imgs||[])];
+  const base={
+    date:wiz.date||todayStr(), time:wiz.time||'', sym:wiz.sym, dir:wiz.dir, qty:wiz.qty,
+    slPts:wiz.sl??null, tpPts:wiz.tp??null, outcome:wiz.outcome, resultPts:+(+wiz.res).toFixed(4),
+    setup:wiz.setup, grade:wiz.grade, plan:wiz.plan, emotion:wiz.emotion, note:(wiz.note||'').trim(), imgs,
+    gross:+c.gross.toFixed(2), comm:+c.comm.toFixed(2), net:+c.net.toFixed(2), r:c.r==null?null:+c.r.toFixed(2)
+  };
+  const pend=wiz.pending||{}, orig=wiz.origImgs||[];
+  if(wiz.editingId!=null){
+    trades = trades.map(t=>t.id===wiz.editingId ? {...base, id:wiz.editingId, acct:wiz.accts[0]||''} : t);
+    toast('Trade updated — balances recalculated');
+  } else {
+    const accs = wiz.accts.length?wiz.accts:[''];
+    accs.forEach((a,i)=>trades.push({...base, id:Date.now()+i, acct:a}));
+    settings.lastAccts=[...wiz.accts];
+    toast(accs.length>1?`Logged to ${accs.length} accounts`:'Trade saved');
+  }
+  Object.keys(pend).forEach(id=>{ if(imgs.includes(id)) imgSave(id, pend[id]); });
+  orig.filter(id=>!imgs.includes(id)).forEach(id=>{ if(imgRefCount(id)===0) imgDelete(id); });
+  persist(); closeWizard(); renderAll();
+}
+
+function editTrade(id){ openWizard(id); }
+function deleteTrade(id){
+  if(!confirm('Delete this trade? Account balances will update.')) return;
+  const del=trades.find(t=>t.id===id);
+  trades = trades.filter(t=>t.id!==id); persist(); renderAll();
+  ((del&&del.imgs)||[]).forEach(im=>{ if(imgRefCount(im)===0) imgDelete(im); });
+  toast('Trade deleted');
+}
+
+/* ================= TABS ================= */
+function switchTab(name){
+  document.querySelectorAll('main > section').forEach(s=>s.style.display='none');
+  $('tab-'+name).style.display='';
+  document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+  if(name==='dashboard') renderDashboard();
+  if(name==='calendar') renderCalendar();
+  if(name==='history') renderHistory();
+  if(name==='settings') renderSettings();
+}
+document.addEventListener('click', e=>{
+  const b=e.target.closest('[data-tab]'); if(b) switchTab(b.dataset.tab);
+});
+
+/* ================= TRADE TABLES ================= */
+function outcomeTag(t){
+  const c = t.outcome==='tp'?'A':(t.outcome==='sl'?'C':'B');
+  const lbl = t.outcome==='tp'?'TP':(t.outcome==='sl'?'SL':'M');
+  return `<span class="tag ${c}">${lbl}</span>`;
+}
+function tradeRowHTML(t, withActions){
+  return `<tr>
+    <td>${esc(t.date)}${t.time?' '+esc(t.time):''}</td>
+    <td style="color:var(--muted)">${t.acct?esc(acctName(t.acct)):'—'}</td>
+    <td><b>${esc(t.sym)}</b></td>
+    <td class="${t.dir==='L'?'pos':'neg'}">${t.dir==='L'?'L':'S'}</td>
+    <td>${t.qty}</td>
+    <td style="color:var(--muted)">${pts(t.slPts)} / ${pts(t.tpPts)}</td>
+    <td><span class="${cls(t.resultPts)}">${t.resultPts>0?'+':''}${pts(t.resultPts)}</span> ${outcomeTag(t)}</td>
+    <td class="${cls(t.net)}"><b>${fmt$(t.net)}</b></td>
+    <td>${t.r==null?'—':`<span class="${cls(t.r)}">${t.r.toFixed(2)}R</span>`}</td>
+    <td>${esc(t.setup)}</td>
+    <td><span class="tag ${t.grade}">${t.grade}</span></td>
+    <td>${t.plan?'✓':'<span class="neg">✗</span>'}</td>
+    <td>${esc(t.emotion)}</td>
+    <td class="note-cell" title="${esc(t.note)}">${(t.imgs&&t.imgs.length)?`<button class="iconbtn" style="padding:2px 4px" onclick="viewShots(${t.id})" title="${t.imgs.length} screenshot${t.imgs.length>1?'s':''}">${ic('i-img')}</button> `:''}${esc(t.note)}</td>
+    ${withActions?`<td><button class="iconbtn" onclick="editTrade(${t.id})" title="Edit">${ic('i-edit')}</button><button class="iconbtn danger" onclick="deleteTrade(${t.id})" title="Delete">${ic('i-trash')}</button></td>`:''}
+  </tr>`;
+}
+const TABLE_HEAD = '<tr><th>Date</th><th>Acct</th><th>Sym</th><th>D</th><th>Qty</th><th>SL/TP pts</th><th>Result</th><th>Net P&L</th><th>R</th><th>Setup</th><th>Gr</th><th>Plan</th><th>Emotion</th><th>Note</th><th></th></tr>';
+
+function renderToday(){
+  const t = sortTrades(trades.filter(x=>x.date===todayStr())).reverse();
+  const net = t.reduce((a,x)=>a+x.net,0);
+  $('todaySummary').innerHTML = t.length ? `${t.length} trade${t.length>1?'s':''} · <span class="${cls(net)}">${fmt$(net)}</span>` : '';
+  $('todayTrades').innerHTML = t.length
+    ? `<table><thead>${TABLE_HEAD}</thead><tbody>${t.map(x=>tradeRowHTML(x,true)).join('')}</tbody></table>`
+    : '<div class="empty">No trades logged today.<br>When you take one, log it while it\'s fresh.</div>';
+}
+
+function renderStrip(){
+  const today = trades.filter(t=>t.date===todayStr()).reduce((a,t)=>a+t.net,0);
+  const wk = new Date(); wk.setDate(wk.getDate()-6);
+  const wkStr = wk.toISOString().slice(0,10);
+  const week = trades.filter(t=>t.date>=wkStr).reduce((a,t)=>a+t.net,0);
+  const all = trades.reduce((a,t)=>a+t.net,0);
+  $('strip').innerHTML = `<span>Today <b class="${cls(today)}">${fmt$(today)}</b></span>
+    <span>7d <b class="${cls(week)}">${fmt$(week)}</b></span>
+    <span>Total <b class="${cls(all)}">${fmt$(all)}</b></span>`;
+}
+
+/* ================= PROP ACCOUNT ENGINE ================= */
+function acctStatus(a){
+  const list = sortTrades(trades.filter(t=>t.acct===a.id));
+  const adjs = (a.adj||[]).slice().sort((x,y)=> x.date<y.date?-1:(x.date>y.date?1:x.id-y.id));
+  /* merge trades + payouts chronologically; payouts apply after that day's trades */
+  const ev = [
+    ...list.map(t=>({d:t.date, tm:t.time||'', o:0, t})),
+    ...adjs.map(p=>({d:p.date, tm:'', o:1, p}))
+  ].sort((x,y)=> x.d<y.d?-1 : x.d>y.d?1 : (x.o-y.o || (x.tm<y.tm?-1:(x.tm>y.tm?1:0))));
+  let bal=a.size, hwmTrade=a.size, hwmEOD=a.size, paidOut=0;
+  let prevDate=null, prevClose=a.size;
+  const dayNet={};
+  for(const e of ev){
+    if(prevDate!==null && e.d!==prevDate) hwmEOD=Math.max(hwmEOD, prevClose);
+    prevDate=e.d;
+    if(e.t){ bal+=e.t.net; hwmTrade=Math.max(hwmTrade,bal); dayNet[e.d]=(dayNet[e.d]||0)+e.t.net; }
+    else { bal-=e.p.amt; paidOut+=e.p.amt; hwmTrade-=e.p.amt; hwmEOD-=e.p.amt; } /* payout shifts trailing HWM down with the balance, so DD buffer is preserved */
+    prevClose=bal;
+  }
+  if(prevDate!==null) hwmEOD=Math.max(hwmEOD, prevClose);
+  let ddLevel;
+  if(a.ddType==='static'){ ddLevel = a.size - a.maxDD; }
+  else {
+    const h = a.ddType==='eod' ? hwmEOD : hwmTrade;
+    ddLevel = h - a.maxDD;
+    if(a.cap) ddLevel = Math.min(ddLevel, a.size - paidOut);
+  }
+  const cycle = bal - a.size;            /* progress toward target (net of payouts) */
+  const profit = cycle + paidOut;        /* lifetime trade P&L */
+  const buffer = bal - ddLevel;
+  const todayNet = dayNet[todayStr()]||0;
+  const days = new Set(list.map(t=>t.date)).size;
+  const blown = buffer<=0 && (list.length>0||adjs.length>0);
+  const dailyBreached = a.dailyLoss>0 && todayNet <= -a.dailyLoss;
+  const passed = a.target>0 && cycle>=a.target;
+  /* consistency rule: best single day must be <= consistPct% of total profit */
+  let bestDay=0, bestDayDate='';
+  for(const d of Object.keys(dayNet)) if(dayNet[d]>bestDay){ bestDay=dayNet[d]; bestDayDate=d; }
+  const cp = +a.consistPct||0;
+  let consistPct=null, consistOk=true, consistNeed=0;
+  if(cp>0 && bestDay>0){
+    consistPct = profit>0 ? bestDay/profit*100 : 100;
+    consistOk = consistPct <= cp + 1e-9;
+    if(!consistOk) consistNeed = bestDay*100/cp - Math.max(profit,0);
+  }
+  return {bal, profit, cycle, paidOut, ddLevel, buffer, todayNet, days, n:list.length, blown, passed, dailyBreached,
+    bestDay, bestDayDate, consistPct, consistOk, consistNeed, consistLimit:cp};
+}
+
+function pbar(label, leftTxt, pct, color){
+  return `<div class="pbar">
+    <div class="top"><span>${label}</span><b>${leftTxt}</b></div>
+    <div class="track"><div class="fill" style="width:${clamp(pct,0,100)}%; background:${color}"></div></div>
+  </div>`;
+}
+
+function acctDetailHTML(a){
+  const s=acctStatus(a);
+  const goal = a.phase==='Funded' ? 'payout goal' : 'to pass';
+  const targetPct = a.target>0 ? clamp(s.cycle/a.target*100,0,100) : 0;
+  const bufPct = a.maxDD>0 ? clamp(s.buffer/a.maxDD*100,0,100) : 0;
+  const ddName = a.ddType==='static'?'static':(a.ddType==='eod'?'trailing (EOD)':'trailing (trade-to-trade)');
+  let badges='';
+  if(s.blown) badges+=' <span class="status-badge blown">DRAWDOWN BREACHED</span>';
+  else if(s.passed) badges+=` <span class="status-badge pass">${a.phase==='Funded'?'PAYOUT TARGET REACHED ✓':'TARGET REACHED — PASSED ✓'}</span>`;
+  if(s.dailyBreached) badges+=' <span class="status-badge blown">DAILY LOSS HIT</span>';
+  if(!s.consistOk && !s.blown) badges+=' <span class="status-badge warn">CONSISTENCY</span>';
+  let html = `<div class="acct-panel">
+    <h3>${ic('i-wallet')}${esc(a.name)} <span class="phase ${a.phase==='Funded'?'funded':''}">${a.phase}</span>${badges}
+      <span style="margin-left:auto; font-size:19px; font-variant-numeric:tabular-nums" class="${cls(s.profit)}">${fmt$0(s.bal)}</span></h3>
+    <div style="font-size:12px; color:var(--muted); margin-top:5px">
+      Started ${fmt$0(a.size)} · P&L <span class="${cls(s.profit)}">${fmt$(s.profit)}</span>${s.paidOut>0?` · Paid out <span class="pos">${fmt$(s.paidOut)}</span>`:''} · ${s.n} trades over ${s.days} day${s.days===1?'':'s'}${a.minDays>0?` (min ${a.minDays})`:''}
+    </div>`;
+  if(a.target>0){
+    const remaining = Math.max(0, a.target - s.cycle);
+    html += pbar(`Profit target ${goal} — ${fmt$0(a.target)}${s.paidOut>0?' (since last reset)':''}`,
+      s.passed ? 'DONE ✓' : fmt$0(remaining)+' to go',
+      targetPct, 'linear-gradient(90deg,#34d399,#22d3ee)');
+  }
+  html += pbar(`Drawdown buffer — ${ddName} · level at ${fmt$0(s.ddLevel)}`,
+    s.blown ? 'BREACHED' : fmt$0(s.buffer)+' of room left',
+    bufPct, bufPct<25 ? 'var(--red)' : (bufPct<50 ? 'var(--gold)' : 'linear-gradient(90deg,#60a5fa,#38bdf8)'));
+  if(a.dailyLoss>0){
+    const used = Math.max(0,-s.todayNet);
+    html += pbar(`Daily loss limit — ${fmt$0(a.dailyLoss)}`,
+      s.dailyBreached ? 'LIMIT HIT' : fmt$0(a.dailyLoss-used)+' left today',
+      used/a.dailyLoss*100, 'var(--red)');
+  }
+  if(a.minDays>0){
+    html += pbar(`Trading days — min ${a.minDays}`,
+      `${s.days} / ${a.minDays}`, s.days/a.minDays*100, 'linear-gradient(90deg,#a78bfa,#60a5fa)');
+  }
+  if(s.consistLimit>0 && s.bestDay>0){
+    html += pbar(`Consistency — best day ≤ ${s.consistLimit}% of profit (best: ${fmt$0(s.bestDay)} on ${s.bestDayDate})`,
+      s.consistOk ? s.consistPct.toFixed(0)+'% — OK ✓' : s.consistPct.toFixed(0)+'% — profit '+fmt$0(Math.max(0,s.consistNeed))+' more to fix',
+      clamp((s.consistPct||0)/s.consistLimit*100,0,100),
+      s.consistOk ? 'linear-gradient(90deg,#34d399,#22d3ee)' : 'var(--gold)');
+  }
+  html += `</div>`;
+  return html;
+}
+
+function acctMiniHTML(a){
+  const s=acctStatus(a);
+  const targetPct = a.target>0 ? clamp(s.cycle/a.target*100,0,100) : 0;
+  let badge = s.blown?'<span class="status-badge blown">BLOWN</span>':(s.passed?'<span class="status-badge pass">PASSED ✓</span>':`<span class="phase ${a.phase==='Funded'?'funded':''}">${a.phase}</span>`);
+  return `<div class="mini-acct" onclick="pickAcct('${a.id}')">
+    <div class="nm">${esc(a.name)} ${badge}</div>
+    <div class="bal ${cls(s.profit)}">${fmt$0(s.bal)}</div>
+    <div class="ln">Target: ${a.target>0?targetPct.toFixed(0)+'%':'—'} · DD room: <span class="${s.buffer< a.maxDD*0.25?'neg':''}">${fmt$0(s.buffer)}</span></div>
+    <div class="ln">Today: <span class="${cls(s.todayNet)}">${fmt$(s.todayNet)}</span></div>
+  </div>`;
+}
+function pickAcct(id){ $('d-acct').value=id; renderDashboard(); }
+
+/* ================= DASHBOARD ================= */
+function stats(list){
+  const s={n:list.length, net:0, wins:0, losses:0, grossW:0, grossL:0, rSum:0, rN:0, maxDD:0, bestStreak:0, worstStreak:0, curStreak:0};
+  let cum=0, peak=0, streak=0;
+  for(const t of sortTrades(list)){
+    s.net+=t.net;
+    if(t.net>0){ s.wins++; s.grossW+=t.net; streak=streak>0?streak+1:1; }
+    else if(t.net<0){ s.losses++; s.grossL+=t.net; streak=streak<0?streak-1:-1; }
+    s.bestStreak=Math.max(s.bestStreak,streak); s.worstStreak=Math.min(s.worstStreak,streak);
+    if(t.r!=null){ s.rSum+=t.r; s.rN++; }
+    cum+=t.net; peak=Math.max(peak,cum); s.maxDD=Math.max(s.maxDD, peak-cum);
+  }
+  s.curStreak=streak;
+  s.winRate = (s.wins+s.losses)?s.wins/(s.wins+s.losses)*100:0;
+  s.pf = s.grossL!==0 ? s.grossW/Math.abs(s.grossL) : (s.grossW>0?Infinity:0);
+  s.expectancy = s.n?s.net/s.n:0;
+  s.avgR = s.rN?s.rSum/s.rN:null;
+  s.avgWin = s.wins?s.grossW/s.wins:0;
+  s.avgLoss = s.losses?s.grossL/s.losses:0;
+  return s;
+}
+
+function statCard(icon, boxCls, k, v, sub, vCls){
+  return `<div class="card"><div class="ibox ${boxCls}">${ic(icon)}</div>
+    <div><div class="k">${k}</div><div class="v ${vCls||''}">${v}</div><div class="s">${sub}</div></div></div>`;
+}
+
+function renderDashboard(){
+  acctOptions($('d-acct'), $('d-acct').value, 'All accounts');
+  const sel=$('d-acct').value;
+  const list = byAcct(trades, sel);
+
+  let acctHtml='';
+  if(sel && sel!=='none' && acct(sel)){ acctHtml = acctDetailHTML(acct(sel)); }
+  else if(sel==='' && settings.accounts.length){
+    acctHtml = `<div class="mini-accts">${settings.accounts.map(acctMiniHTML).join('')}</div>`;
+  }
+  $('acctArea').innerHTML=acctHtml;
+
+  const s = stats(list);
+  $('statCards').innerHTML =
+    statCard('i-dollar','g','Net P&L', fmt$(s.net), s.n+' trades', cls(s.net)) +
+    statCard('i-pct','b','Win Rate', s.winRate.toFixed(0)+'%', s.wins+'W / '+s.losses+'L') +
+    statCard('i-scale','pu','Profit Factor', s.pf===Infinity?'∞':s.pf.toFixed(2), 'gross win ÷ gross loss') +
+    statCard('i-target','o','Expectancy', fmt$(s.expectancy), 'per trade'+(s.avgR!=null?' · '+s.avgR.toFixed(2)+'R avg':''), cls(s.expectancy)) +
+    statCard('i-zap','cy','Avg Win / Loss', `<span class="pos">${fmt$(s.avgWin)}</span>`, 'vs <span class="neg">'+fmt$(s.avgLoss)+'</span>') +
+    statCard('i-shield','r','Max Drawdown', fmt$(-s.maxDD), 'streak: '+(s.curStreak>0?'+':'')+s.curStreak+' (best +'+s.bestStreak+', worst '+s.worstStreak+')', 'neg');
+  renderEquity(list);
+  renderInsights(list);
+  barChart('bySetup', groupBy(list, t=>t.setup));
+  barChart('bySym', groupBy(list, t=>t.sym));
+  barChart('byDay', groupByWeekday(list));
+}
+
+function acctOptions(sel, current, allLabel){
+  sel.innerHTML = `<option value="">${allLabel}</option>` +
+    settings.accounts.map(a=>`<option value="${a.id}"${a.id===current?' selected':''}>${esc(a.name)}</option>`).join('') +
+    `<option value="none"${current==='none'?' selected':''}>No account</option>`;
+}
+
+function renderEquity(list){
+  const el=$('equity');
+  const ts = sortTrades(list);
+  if(ts.length<2){ el.innerHTML='<div class="empty">Log at least 2 trades to draw your equity curve.</div>'; return; }
+  let cum=0; const p=[0]; ts.forEach(t=>{cum+=t.net; p.push(cum);});
+  const W=800,H=240,P=34;
+  const min=Math.min(0,...p), max=Math.max(0,...p), span=(max-min)||1;
+  const X=i=>P+(W-2*P)*i/(p.length-1);
+  const Y=v=>H-P-(H-2*P)*(v-min)/span;
+  const line = p.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+  const zero = Y(0);
+  const last = p[p.length-1];
+  const col = last>=0?'#34d399':'#f87171';
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%">
+    <defs><linearGradient id="eqg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${col}" stop-opacity=".28"/>
+      <stop offset="100%" stop-color="${col}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <line x1="${P}" y1="${zero}" x2="${W-P}" y2="${zero}" stroke="#242f4a" stroke-dasharray="4 4"/>
+    <polygon points="${X(0)},${zero} ${line} ${X(p.length-1)},${zero}" fill="url(#eqg)"/>
+    <polyline points="${line}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${X(p.length-1)}" cy="${Y(last)}" r="4" fill="${col}"/>
+    <text x="${W-P}" y="${Y(last)-10}" fill="${col}" font-size="13" font-weight="700" text-anchor="end">${fmt$(last)}</text>
+    <text x="${P}" y="${zero-6}" fill="#8b98b3" font-size="11">$0</text>
+  </svg>`;
+}
+
+function groupBy(list, keyFn){
+  const m={};
+  list.forEach(t=>{ const k=keyFn(t)||'—'; (m[k]=m[k]||{net:0,n:0}); m[k].net+=t.net; m[k].n++; });
+  return Object.entries(m).map(([label,v])=>({label, value:v.net, count:v.n})).sort((a,b)=>b.value-a.value);
+}
+function groupByWeekday(list){
+  const names=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], m={};
+  list.forEach(t=>{ const d=new Date(t.date+'T12:00:00'); const k=names[d.getDay()]; (m[k]=m[k]||{net:0,n:0}); m[k].net+=t.net; m[k].n++; });
+  return names.filter(n=>m[n]).map(n=>({label:n, value:m[n].net, count:m[n].n}));
+}
+function barChart(id, data){
+  const el=$(id);
+  if(!data.length){ el.innerHTML='<div class="empty">No data yet.</div>'; return; }
+  const maxAbs=Math.max(...data.map(d=>Math.abs(d.value)))||1;
+  el.innerHTML = data.map(d=>{
+    const w=Math.abs(d.value)/maxAbs*97;
+    return `<div class="row">
+      <div class="lbl" title="${esc(d.label)}">${esc(d.label)} <span style="opacity:.6">(${d.count})</span></div>
+      <div class="track"><div class="bar" style="width:${w}%; background:${d.value>=0?'linear-gradient(90deg,#34d399,#22d3ee)':'linear-gradient(90deg,#f87171,#fb923c)'}"></div></div>
+      <div class="val ${cls(d.value)}">${fmt$(d.value)}</div></div>`;
+  }).join('');
+}
+
+function avg(a){ return a.length?a.reduce((x,y)=>x+y,0)/a.length:0; }
+function insightHTML(kind, icon, html){
+  return `<div class="insight ${kind}">${ic(icon)}<div>${html}</div></div>`;
+}
+function renderInsights(list){
+  const el=$('insights');
+  if(list.length<5){ el.innerHTML='<div class="empty">Log 5+ trades to unlock insights about your discipline, setups and emotions.</div>'; return; }
+  const out=[];
+  const yes=list.filter(t=>t.plan), no=list.filter(t=>!t.plan);
+  if(yes.length>=3 && no.length>=3){
+    const ay=avg(yes.map(t=>t.net)), an=avg(no.map(t=>t.net));
+    out.push(insightHTML(ay>an?'good':'warn','i-check',`<b>Plan discipline:</b> you average <b class="${cls(ay)}">${fmt$(ay)}</b>/trade when following your plan vs <b class="${cls(an)}">${fmt$(an)}</b> when you don't (${no.length} rule breaks).`));
+  } else if(no.length===0){
+    out.push(insightHTML('good','i-check',`<b>Plan discipline:</b> 100% of logged trades followed your plan. Keep it up.`));
+  }
+  const bySetup=groupBy(list, t=>t.setup).filter(d=>d.count>=3);
+  if(bySetup.length){
+    const best=bySetup[0], worst=bySetup[bySetup.length-1];
+    out.push(insightHTML('good','i-target',`<b>Best setup:</b> ${esc(best.label)} — <b class="${cls(best.value)}">${fmt$(best.value)}</b> over ${best.count} trades.`));
+    if(worst.value<0) out.push(insightHTML('warn','i-warn',`<b>Leaking setup:</b> ${esc(worst.label)} — <b class="neg">${fmt$(worst.value)}</b> over ${worst.count} trades. Consider cutting it or reviewing entries.`));
+  }
+  const byEmo=groupBy(list, t=>t.emotion).filter(d=>d.count>=3);
+  if(byEmo.length){
+    const worstE=byEmo[byEmo.length-1];
+    if(worstE.value<0) out.push(insightHTML('warn','i-pulse',`<b>Emotional leak:</b> trades tagged “${esc(worstE.label)}” have cost you <b class="neg">${fmt$(worstE.value)}</b> (${worstE.count} trades).`));
+  }
+  const grades={};
+  list.forEach(t=>{ (grades[t.grade]=grades[t.grade]||[]).push(t.net); });
+  if((grades.A||[]).length>=3 && (grades.C||[]).length>=3){
+    out.push(insightHTML('','i-target',`<b>Quality filter:</b> A-grade setups average <b class="${cls(avg(grades.A))}">${fmt$(avg(grades.A))}</b> vs C-grade <b class="${cls(avg(grades.C))}">${fmt$(avg(grades.C))}</b>. ${avg(grades.A)>avg(grades.C)?'Trade fewer C setups.':'Your grading may need recalibrating.'}`));
+  }
+  const tpN=list.filter(t=>t.outcome==='tp').length, slN=list.filter(t=>t.outcome==='sl').length, mN=list.filter(t=>t.outcome==='manual').length;
+  if(mN>=3 && (tpN+slN)>0){
+    const man=list.filter(t=>t.outcome==='manual');
+    out.push(insightHTML('','i-zap',`<b>Manual exits:</b> ${mN} of ${list.length} trades closed manually, averaging <b class="${cls(avg(man.map(t=>t.net)))}">${fmt$(avg(man.map(t=>t.net)))}</b>. Compare that against letting brackets play out (${tpN} TP / ${slN} SL).`));
+  }
+  el.innerHTML = out.length?out.join(''):'<div class="empty">Not enough variety yet — insights appear as patterns emerge.</div>';
+}
+
+/* ================= CALENDAR ================= */
+function calMove(d){ calM+=d; if(calM<0){calM=11;calY--;} if(calM>11){calM=0;calY++;} renderCalendar(); }
+function renderCalendar(){
+  if(calY===undefined){ const n=new Date(); calY=n.getFullYear(); calM=n.getMonth(); }
+  acctOptions($('c-acct'), $('c-acct').value, 'All accounts');
+  const list = byAcct(trades, $('c-acct').value);
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const byDate={};
+  list.forEach(t=>{ (byDate[t.date]=byDate[t.date]||{net:0,n:0}); byDate[t.date].net+=t.net; byDate[t.date].n++; });
+  const first=new Date(calY,calM,1), startDow=first.getDay(), dim=new Date(calY,calM+1,0).getDate();
+  let html=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="dow">${d}</div>`).join('')+'<div class="dow">Week</div>';
+  let day=1-startDow, monthNet=0, monthN=0;
+  while(day<=dim){
+    let weekNet=0, weekHas=false, weekHtml='';
+    for(let i=0;i<7;i++,day++){
+      if(day<1||day>dim){ weekHtml+='<div class="cal-cell" style="opacity:.25"></div>'; continue; }
+      const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const d=byDate[ds];
+      if(d){ weekNet+=d.net; monthNet+=d.net; monthN+=d.n; weekHas=true;
+        weekHtml+=`<div class="cal-cell trades ${d.net>0?'win':(d.net<0?'loss':'')}" onclick="openPnlCard('${ds}')">
+          <div class="d">${day}</div><div class="p ${cls(d.net)}">${fmt$0(d.net)}</div><div class="c">${d.n} trade${d.n>1?'s':''}</div></div>`;
+      } else {
+        weekHtml+=`<div class="cal-cell"><div class="d">${day}</div></div>`;
+      }
+    }
+    weekHtml+=weekHas?`<div class="cal-week"><div>Week</div><div class="p ${cls(weekNet)}">${fmt$0(weekNet)}</div></div>`:'<div class="cal-week"></div>';
+    html+=weekHtml;
+  }
+  $('calTitle').innerHTML=`${months[calM]} ${calY} · <span class="${cls(monthNet)}">${fmt$0(monthNet)}</span> <span style="color:var(--muted);font-weight:400">(${monthN})</span>`;
+  $('calGrid').innerHTML=html;
+}
+function dayDrill(ds){ switchTab('history'); $('h-date').value=ds; renderHistory(); }
+
+/* ================= HISTORY ================= */
+function renderHistory(){
+  acctOptions($('h-acct'), $('h-acct').value, 'All accounts');
+  const symSel=$('h-sym'), setSel=$('h-setup');
+  const curSym=symSel.value, curSet=setSel.value;
+  symSel.innerHTML='<option value="">All instruments</option>'+[...new Set(trades.map(t=>t.sym))].map(s=>`<option${s===curSym?' selected':''}>${esc(s)}</option>`).join('');
+  setSel.innerHTML='<option value="">All setups</option>'+[...new Set(trades.map(t=>t.setup))].map(s=>`<option${s===curSet?' selected':''}>${esc(s)}</option>`).join('');
+  const fd=$('h-date').value, fs=symSel.value, fp=setSel.value, fr=$('h-result').value, q=$('h-search').value.toLowerCase();
+  let list = byAcct(sortTrades(trades).reverse(), $('h-acct').value).filter(t=>
+    (!fd||t.date===fd)&&(!fs||t.sym===fs)&&(!fp||t.setup===fp)&&
+    (!fr||(fr==='win'?t.net>0:t.net<0))&&(!q||(t.note||'').toLowerCase().includes(q)));
+  const net=list.reduce((a,t)=>a+t.net,0);
+  $('histCount').innerHTML=`${list.length} of ${trades.length} trades · <span class="${cls(net)}">${fmt$(net)}</span>`;
+  $('histTable').innerHTML = list.length
+    ? `<table><thead>${TABLE_HEAD}</thead><tbody>${list.map(t=>tradeRowHTML(t,true)).join('')}</tbody></table>`
+    : '<div class="empty">No trades match.</div>';
+}
+function clearFilters(){ $('h-acct').value=''; $('h-date').value=''; $('h-sym').value=''; $('h-setup').value=''; $('h-result').value=''; $('h-search').value=''; renderHistory(); }
+
+/* ================= SETTINGS ================= */
+const openFolds=new Set();
+function foldToggle(k,open){ if(open) openFolds.add(k); else openFolds.delete(k); }
+function renderSettings(){
+  $('s-qty').value=settings.qty; $('s-comm').value=settings.commPerSide;
+  const instCount=$('instCount'); if(instCount) instCount.textContent=settings.instruments.length+' instruments';
+  $('acctList').innerHTML = settings.accounts.length ? settings.accounts.map(a=>{
+    const s=acctStatus(a);
+    return `<details class="fold" ${openFolds.has(a.id)?'open':''} ontoggle="foldToggle('${a.id}',this.open)">
+    <summary><b>${esc(a.name)}</b>
+      <span class="fold-sub">${fmt$0(s.bal)} · ${s.n} trades${s.blown?' · <span class="neg">BLOWN</span>':''}${s.passed?' · <span class="pos">PASSED ✓</span>':''}</span>
+      <svg class="ic chev"><use href="#i-next"/></svg></summary>
+    <div class="fold-body">
+    <div class="grid">
+      <div><label>Name</label><input value="${esc(a.name)}" onchange="updAcct('${a.id}','name',this.value)"></div>
+      <div><label>Size $</label><input type="number" step="any" value="${a.size}" onchange="updAcct('${a.id}','size',this.value)"></div>
+      <div><label>Profit target $</label><input type="number" step="any" value="${a.target}" onchange="updAcct('${a.id}','target',this.value)"></div>
+      <div><label>Max drawdown $</label><input type="number" step="any" value="${a.maxDD}" onchange="updAcct('${a.id}','maxDD',this.value)"></div>
+      <div><label>DD type</label><select onchange="updAcct('${a.id}','ddType',this.value)">
+        <option value="intraday"${a.ddType==='intraday'?' selected':''}>Trailing — trade-to-trade</option>
+        <option value="eod"${a.ddType==='eod'?' selected':''}>Trailing — end of day</option>
+        <option value="static"${a.ddType==='static'?' selected':''}>Static</option></select></div>
+      <div><label>Daily loss $ (0=none)</label><input type="number" step="any" value="${a.dailyLoss}" onchange="updAcct('${a.id}','dailyLoss',this.value)"></div>
+      <div><label>Min days (0=none)</label><input type="number" step="1" value="${a.minDays}" onchange="updAcct('${a.id}','minDays',this.value)"></div>
+      <div><label>Consistency % (0=none)</label><input type="number" step="1" min="0" max="100" value="${a.consistPct||0}" onchange="updAcct('${a.id}','consistPct',this.value)"></div>
+      <div><label>Phase</label><select onchange="updAcct('${a.id}','phase',this.value)">
+        <option${a.phase==='Evaluation'?' selected':''}>Evaluation</option>
+        <option${a.phase==='Funded'?' selected':''}>Funded</option></select></div>
+    </div>
+    <div class="checkline"><input type="checkbox" ${a.cap?'checked':''} onchange="updAcct('${a.id}','cap',this.checked)"><span>Trailing stops once it reaches starting balance</span></div>
+    <div style="margin-top:14px">
+      <label>Payouts / withdrawals</label>
+      ${(a.adj||[]).length?`<div class="chips" style="margin:6px 0 0">${a.adj.map(p=>`<span class="chip">${esc(p.date)} · ${fmt$(p.amt)}${p.note?' · '+esc(p.note):''}<button onclick="delPayout('${a.id}',${p.id})" title="Remove">${ic('i-x')}</button></span>`).join('')}</div>`:''}
+      <div class="pay-row">
+        <div><label>Date</label><input type="date" id="pa-d-${a.id}" value="${todayStr()}" style="width:150px"></div>
+        <div><label>Amount $</label><input type="number" id="pa-a-${a.id}" step="any" min="0" placeholder="1000" style="width:110px"></div>
+        <div style="flex:1; min-width:130px"><label>Note (opt.)</label><input type="text" id="pa-n-${a.id}" placeholder="e.g. July payout"></div>
+        <button class="ghost" onclick="addPayout('${a.id}')">${ic('i-dollar')}Log payout</button>
+      </div>
+    </div>
+    <div style="margin-top:14px; display:flex; justify-content:flex-end">
+      <button class="ghost danger" onclick="delAccount('${a.id}')">${ic('i-trash')}Remove account</button>
+    </div>
+    </div>
+    </details>`;
+  }).join('') : '<div class="empty">No prop accounts yet — add one below and pick it when logging trades.</div>';
+  $('instRows').innerHTML = settings.instruments.map((i,idx)=>`<tr>
+    <td><b>${esc(i.sym)}</b></td>
+    <td><input value="${esc(i.name)}" onchange="updInst(${idx},'name',this.value)"></td>
+    <td><input type="number" step="any" value="${i.ts}" onchange="updInst(${idx},'ts',parseFloat(this.value))" style="width:88px"></td>
+    <td><input type="number" step="any" value="${i.tv}" onchange="updInst(${idx},'tv',parseFloat(this.value))" style="width:88px"></td>
+    <td style="color:var(--muted)">${fmt$(i.tv/i.ts)}</td>
+    <td><button class="iconbtn danger" onclick="delInst(${idx})">${ic('i-trash')}</button></td></tr>`).join('');
+  $('setupChips').innerHTML = settings.setups.map((s,idx)=>`<span class="chip">${esc(s)}<button onclick="delSetup(${idx})">${ic('i-x')}</button></span>`).join('');
+}
+function saveDefaults(){ settings.qty=Math.max(1,+$('s-qty').value||1); settings.commPerSide=Math.max(0,+$('s-comm').value||0); persist(); }
+
+function addAccount(){
+  const name=$('na-name').value.trim(), size=parseFloat($('na-size').value),
+        target=parseFloat($('na-target').value)||0, dd=parseFloat($('na-dd').value);
+  if(!name||!size||size<=0||!dd||dd<=0){ alert('Name, account size and max drawdown are required.'); return; }
+  settings.accounts.push({
+    id:'a'+Date.now(), name, size, target, maxDD:dd,
+    ddType:$('na-ddtype').value, cap:$('na-cap').checked,
+    dailyLoss:parseFloat($('na-dl').value)||0, minDays:parseInt($('na-days').value)||0,
+    consistPct:parseFloat($('na-consist').value)||0, adj:[],
+    phase:$('na-phase').value
+  });
+  persist();
+  ['na-name','na-size','na-target','na-dd','na-dl','na-days','na-consist'].forEach(id=>$(id).value=(id==='na-dl'||id==='na-days'||id==='na-consist')?'0':'');
+  $('na-cap').checked=false;
+  renderSettings();
+  toast('Account added');
+}
+function updAcct(id,k,v){
+  const a=acct(id); if(!a) return;
+  if(['size','target','maxDD','dailyLoss','consistPct'].includes(k)){ v=parseFloat(v); if(isNaN(v)||v<0){renderSettings();return;} }
+  if(k==='minDays'){ v=parseInt(v)||0; }
+  a[k]=v; persist(); renderSettings();
+}
+function addPayout(id){
+  const a=acct(id); if(!a) return;
+  const d=$('pa-d-'+id).value||todayStr();
+  const amt=parseFloat($('pa-a-'+id).value);
+  const note=($('pa-n-'+id).value||'').trim();
+  if(!amt||amt<=0){ alert('Enter the payout amount.'); return; }
+  a.adj=a.adj||[];
+  a.adj.push({id:Date.now(), date:d, amt:+amt.toFixed(2), note});
+  a.adj.sort((x,y)=> x.date<y.date?-1:(x.date>y.date?1:x.id-y.id));
+  persist(); renderSettings(); toast('Payout logged — balance updated');
+}
+function delPayout(id,pid){
+  const a=acct(id); if(!a) return;
+  if(!confirm('Remove this payout? The account balance will recalculate.')) return;
+  a.adj=(a.adj||[]).filter(p=>p.id!==pid); persist(); renderSettings();
+}
+function delAccount(id){
+  const a=acct(id); if(!a) return;
+  const n=trades.filter(t=>t.acct===id).length;
+  if(!confirm(`Remove "${a.name}"?${n?` Its ${n} trades stay in the journal but become unassigned.`:''}`)) return;
+  settings.accounts=settings.accounts.filter(x=>x.id!==id);
+  trades=trades.map(t=>t.acct===id?{...t,acct:''}:t);
+  settings.lastAccts=settings.lastAccts.filter(x=>x!==id);
+  persist(); renderSettings();
+}
+
+function updInst(i,k,v){ if(k!=='name'&&(!v||v<=0)){renderSettings();return;} settings.instruments[i][k]=v; persist(); renderSettings(); }
+function delInst(i){ if(!confirm('Remove '+settings.instruments[i].sym+'?'))return; settings.instruments.splice(i,1); persist(); renderSettings(); }
+function addInstrument(){
+  const sym=$('ni-sym').value.trim().toUpperCase(), name=$('ni-name').value.trim(), ts=parseFloat($('ni-ts').value), tv=parseFloat($('ni-tv').value);
+  if(!sym||!ts||!tv){ alert('Symbol, tick size and tick value are required.'); return; }
+  if(inst(sym)){ alert(sym+' already exists.'); return; }
+  settings.instruments.push({sym,name:name||sym,ts,tv}); persist();
+  $('ni-sym').value=$('ni-name').value=$('ni-ts').value=$('ni-tv').value='';
+  renderSettings();
+}
+function addSetup(){ const n=$('ns-name').value.trim(); if(!n)return; if(!settings.setups.includes(n)) settings.setups.push(n); $('ns-name').value=''; persist(); renderSettings(); }
+function delSetup(i){ settings.setups.splice(i,1); persist(); renderSettings(); }
+
+/* ================= SCREENSHOT STORE =================
+   Native app: files in app data via Capacitor Filesystem.
+   Browser: IndexedDB. Stored as downscaled JPEG data URLs. */
+const IMGDIR='ftj_img';
+function idb(){ return new Promise((res,rej)=>{
+  const r=indexedDB.open('ftj',1);
+  r.onupgradeneeded=()=>{ r.result.createObjectStore('imgs'); };
+  r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
+});}
+function idbPut(k,v){ return idb().then(d=>new Promise((res,rej)=>{ const t=d.transaction('imgs','readwrite'); t.objectStore('imgs').put(v,k); t.oncomplete=res; t.onerror=()=>rej(t.error); })); }
+function idbGet(k){ return idb().then(d=>new Promise((res,rej)=>{ const r=d.transaction('imgs').objectStore('imgs').get(k); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); })); }
+function idbDel(k){ return idb().then(d=>new Promise((res,rej)=>{ const t=d.transaction('imgs','readwrite'); t.objectStore('imgs').delete(k); t.oncomplete=res; t.onerror=()=>rej(t.error); })); }
+function idbClear(){ return idb().then(d=>new Promise((res,rej)=>{ const t=d.transaction('imgs','readwrite'); t.objectStore('imgs').clear(); t.oncomplete=res; t.onerror=()=>rej(t.error); })); }
+
+async function imgSave(id,dataUrl){
+  const FS=P('Filesystem');
+  try{
+    if(FS) await FS.writeFile({path:IMGDIR+'/'+id, data:dataUrl.split(',')[1], directory:'DATA', recursive:true});
+    else await idbPut(id,dataUrl);
+  }catch(e){ console.warn('imgSave',e); }
+}
+async function imgLoad(id){
+  const FS=P('Filesystem');
+  try{
+    if(FS){ const r=await FS.readFile({path:IMGDIR+'/'+id, directory:'DATA'}); return 'data:image/jpeg;base64,'+r.data; }
+    return (await idbGet(id))||null;
+  }catch(e){ return null; }
+}
+async function imgDelete(id){
+  const FS=P('Filesystem');
+  try{ if(FS) await FS.deleteFile({path:IMGDIR+'/'+id, directory:'DATA'}); else await idbDel(id); }catch(e){}
+}
+async function imgWipeAll(){
+  const FS=P('Filesystem');
+  try{ if(FS) await FS.rmdir({path:IMGDIR, directory:'DATA', recursive:true}); }catch(e){}
+  try{ await idbClear(); }catch(e){}
+}
+function imgRefCount(id){ return trades.filter(t=>(t.imgs||[]).includes(id)).length; }
+
+function downscaleImg(file){ return new Promise((res,rej)=>{
+  const img=new Image();
+  img.onload=()=>{
+    const M=1400, sc=Math.min(1, M/Math.max(img.width,img.height));
+    const cv=document.createElement('canvas');
+    cv.width=Math.max(1,Math.round(img.width*sc)); cv.height=Math.max(1,Math.round(img.height*sc));
+    cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+    URL.revokeObjectURL(img.src);
+    res(cv.toDataURL('image/jpeg',0.82));
+  };
+  img.onerror=()=>{ URL.revokeObjectURL(img.src); rej(new Error('bad image')); };
+  img.src=URL.createObjectURL(file);
+});}
+
+async function wizAddImgs(ev){
+  const files=[...ev.target.files]; ev.target.value='';
+  for(const f of files){
+    if((wiz.imgs||[]).length>=6){ toast('Max 6 screenshots per trade'); break; }
+    try{
+      const du=await downscaleImg(f);
+      const id='img_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)+'.jpg';
+      wiz.pending[id]=du; wiz.imgs.push(id);
+    }catch(e){ toast('Could not read image'); }
+  }
+  renderWizShots();
+}
+function wizRemoveImg(id){
+  wiz.imgs=wiz.imgs.filter(x=>x!==id); delete wiz.pending[id];
+  renderWizShots();
+}
+function renderWizShots(){
+  const el=$('wizShots'); if(!el||!wiz) return;
+  el.innerHTML=(wiz.imgs||[]).map(id=>
+    `<div class="shot"><img id="wshot-${id}" alt=""><button type="button" onclick="wizRemoveImg('${id}')" title="Remove">${ic('i-x')}</button></div>`).join('');
+  (wiz.imgs||[]).forEach(async id=>{
+    const im=document.getElementById('wshot-'+id); if(!im) return;
+    const du=wiz.pending[id]||await imgLoad(id);
+    if(du && document.getElementById('wshot-'+id)) im.src=du;
+  });
+}
+
+/* full-screen screenshot viewer */
+let shotList=[], shotIdx=0;
+function viewShots(tradeId){
+  const t=trades.find(x=>x.id===tradeId); if(!t||!(t.imgs||[]).length) return;
+  shotList=[...t.imgs]; shotIdx=0;
+  $('shotModal').style.display='flex';
+  showShot();
+}
+async function showShot(){
+  $('shotCount').textContent=(shotIdx+1)+' / '+shotList.length;
+  $('shotNavs').style.display=shotList.length>1?'flex':'none';
+  $('shotImg').src='';
+  const du=await imgLoad(shotList[shotIdx]);
+  $('shotImg').src=du||'';
+}
+function shotNav(d){ shotIdx=(shotIdx+d+shotList.length)%shotList.length; showShot(); }
+
+/* ================= CSV IMPORT ================= */
+let imp=null;
+function parseCSV(txt){
+  const rows=[]; let row=[], cur='', q=false;
+  for(let i=0;i<txt.length;i++){
+    const c=txt[i];
+    if(q){ if(c==='"'){ if(txt[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+    else if(c==='"') q=true;
+    else if(c===','){ row.push(cur); cur=''; }
+    else if(c==='\n'||c==='\r'){ if(c==='\r'&&txt[i+1]==='\n')i++; row.push(cur); if(row.length>1||row[0].trim()!=='') rows.push(row); row=[]; cur=''; }
+    else cur+=c;
+  }
+  if(cur!==''||row.length){ row.push(cur); if(row.length>1||row[0].trim()!=='') rows.push(row); }
+  return rows;
+}
+function parseMoney(v){
+  let s=String(v==null?'':v).trim();
+  if(!s) return NaN;
+  const neg=/^\(.*\)$/.test(s); if(neg) s=s.slice(1,-1);
+  s=s.replace(/[$,\s]/g,'');
+  const n=parseFloat(s);
+  return isNaN(n)?NaN:(neg?-n:n);
+}
+function parseDateCell(v){
+  v=String(v==null?'':v).trim(); if(!v) return null;
+  let m=v.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}:\d{2}))?/);
+  if(m) return {date:`${m[1]}-${m[2]}-${m[3]}`, time:m[4]||''};
+  m=v.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:[ ,]+(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?)?/i);
+  if(m){
+    let y=+m[3]; if(y<100)y+=2000;
+    let time='';
+    if(m[4]!=null){
+      let h=+m[4];
+      if(m[6]){ const ap=m[6].toUpperCase(); if(ap==='PM'&&h<12)h+=12; if(ap==='AM'&&h===12)h=0; }
+      time=String(h).padStart(2,'0')+':'+m[5];
+    }
+    return {date:`${y}-${String(+m[1]).padStart(2,'0')}-${String(+m[2]).padStart(2,'0')}`, time};
+  }
+  return null;
+}
+function matchSym(raw){
+  let s=String(raw==null?'':raw).trim().toUpperCase().split(/\s+/)[0];
+  if(!s) return null;
+  if(inst(s)) return s;
+  const m=s.match(/^([A-Z]+?)[FGHJKMNQUVXZ]?\d{0,4}$/); /* strip futures month+year code, e.g. MESU5 -> MES */
+  if(m&&inst(m[1])) return m[1];
+  let best=null;
+  for(const i of settings.instruments){ if(s.startsWith(i.sym)&&(!best||i.sym.length>best.length)) best=i.sym; }
+  return best;
+}
+const normH=h=>String(h==null?'':h).toLowerCase().replace(/[^a-z0-9]/g,'');
+function pickCol(heads,names){ for(const n of names){ const i=heads.indexOf(n); if(i>=0) return i; } return -1; }
+
+function openImportFile(ev){
+  const f=ev.target.files[0]; ev.target.value=''; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>buildImport(String(r.result));
+  r.onerror=()=>alert('Could not read the file.');
+  r.readAsText(f);
+}
+function buildImport(text){
+  const rows=parseCSV(text).filter(r=>r.some(c=>String(c).trim()!==''));
+  if(rows.length<2){ alert('CSV appears to be empty.'); return; }
+  const heads=rows[0].map(normH);
+  const col={
+    date:pickCol(heads,['date','tradedate','datetime','timestamp','boughttimestamp','entrytime','opentime','filltime','exittime','soldtimestamp']),
+    time:pickCol(heads,['time']),
+    sym:pickCol(heads,['symbol','sym','instrument','contract','contractname','market','product','ticker']),
+    dir:pickCol(heads,['direction','side','bs','buysell','longshort','type']),
+    qty:pickCol(heads,['contracts','qty','quantity','size','lots','filledqty','volume']),
+    net:pickCol(heads,['net','netpl','netpnl','netprofit','pl','pnl','profit','profitloss','realizedpl','realizedpnl','gainloss','netgain']),
+    pts:pickCol(heads,['resultpts','points','pts','pnlpoints','pnlpts']),
+    sl:pickCol(heads,['slpts','stoploss','stoplosspts']),
+    tp:pickCol(heads,['tppts','takeprofit','takeprofitpts']),
+    outcome:pickCol(heads,['outcome']),
+    setup:pickCol(heads,['setup','strategy','playbook']),
+    grade:pickCol(heads,['grade']),
+    plan:pickCol(heads,['followedplan','plan']),
+    emotion:pickCol(heads,['emotion','mood']),
+    note:pickCol(heads,['note','notes','comment','comments','description']),
+    acct:pickCol(heads,['account','accountname','acct'])
+  };
+  if(col.date<0||col.sym<0||(col.net<0&&col.pts<0)){
+    alert('Could not detect the required columns.\nNeed at least: Date, Symbol, and Net P&L or Result points.\n\nFound: '+rows[0].join(', '));
+    return;
+  }
+  const ok=[], skipped={};
+  const skip=r=>{ skipped[r]=(skipped[r]||0)+1; };
+  const defSetup = settings.setups.includes('Other')?'Other':(settings.setups[0]||'Other');
+  for(const r of rows.slice(1)){
+    const dt=parseDateCell(r[col.date]); if(!dt){ skip('unreadable date'); continue; }
+    if(col.time>=0 && r[col.time]){ const tm=String(r[col.time]).match(/(\d{1,2}):(\d{2})/); if(tm) dt.time=tm[1].padStart(2,'0')+':'+tm[2]; }
+    const sym=matchSym(r[col.sym]);
+    if(!sym){ skip('unknown symbol "'+String(r[col.sym]).trim()+'"'); continue; }
+    const qty=col.qty>=0 ? (Math.max(1,Math.round(Math.abs(parseMoney(r[col.qty])))||1)) : 1;
+    let dir='L';
+    if(col.dir>=0 && /^\s*(s|sell|short)/i.test(String(r[col.dir]))) dir='S';
+    let resPts=null, netGiven=null;
+    if(col.pts>=0 && String(r[col.pts]).trim()!==''){ const p=parseMoney(r[col.pts]); if(!isNaN(p)) resPts=p; }
+    if(col.net>=0 && String(r[col.net]).trim()!==''){ const p=parseMoney(r[col.net]); if(!isNaN(p)) netGiven=p; }
+    const pv=pointVal(sym);
+    if(resPts==null){
+      if(netGiven==null){ skip('no P&L value'); continue; }
+      resPts=+((netGiven + settings.commPerSide*2*qty)/(pv*qty)).toFixed(4);
+    }
+    const slv=col.sl>=0?Math.abs(parseMoney(r[col.sl])):NaN;
+    const tpv=col.tp>=0?Math.abs(parseMoney(r[col.tp])):NaN;
+    const sl=(!isNaN(slv)&&slv>0)?slv:null, tp=(!isNaN(tpv)&&tpv>0)?tpv:null;
+    const c=calc(sym, qty, sl, resPts); if(!c){ skip('calculation failed'); continue; }
+    let net=+c.net.toFixed(2), gross=+c.gross.toFixed(2), rr=c.r==null?null:+c.r.toFixed(2);
+    if(netGiven!=null){ net=+netGiven.toFixed(2); gross=+(net+c.comm).toFixed(2); rr=(c.risk&&c.risk>0)?+(net/c.risk).toFixed(2):null; }
+    let outcome='manual';
+    if(col.outcome>=0){ const o=String(r[col.outcome]).trim().toLowerCase(); if(o==='tp'||o==='sl') outcome=o; }
+    const setup=col.setup>=0&&String(r[col.setup]).trim()?String(r[col.setup]).trim().slice(0,60):defSetup;
+    const grade=col.grade>=0&&/^[abc]$/i.test(String(r[col.grade]).trim())?String(r[col.grade]).trim().toUpperCase():'B';
+    const plan=col.plan>=0?!/^\s*(n|no|false|0)/i.test(String(r[col.plan]).trim()||'y'):true;
+    const emoRaw=col.emotion>=0?String(r[col.emotion]).trim():'';
+    const emotion=EMOTIONS.find(e=>e.toLowerCase()===emoRaw.toLowerCase())||'Neutral';
+    const note=col.note>=0?String(r[col.note]).trim().slice(0,400):'';
+    let acctId='';
+    if(col.acct>=0&&String(r[col.acct]).trim()){
+      const an=String(r[col.acct]).trim().toLowerCase();
+      const a=settings.accounts.find(a=>a.name.toLowerCase()===an);
+      if(a) acctId=a.id;
+    }
+    const t={date:dt.date, time:dt.time||'', acct:acctId, sym, dir, qty, slPts:sl, tpPts:tp, outcome,
+      resultPts:+(+resPts).toFixed(4), setup, grade, plan, emotion, note,
+      gross, comm:+c.comm.toFixed(2), net, r:rr};
+    t._dup = trades.some(x=>x.date===t.date && x.sym===t.sym && x.qty===t.qty && (x.time||'')===(t.time||'') && Math.abs(x.net-t.net)<0.01);
+    ok.push(t);
+  }
+  imp={ok, skipped};
+  renderImport();
+  $('impModal').style.display='flex';
+}
+function renderImport(){
+  const fresh=imp.ok.filter(t=>!t._dup), dups=imp.ok.filter(t=>t._dup);
+  const skipEntries=Object.entries(imp.skipped);
+  const skipN=skipEntries.reduce((a,e)=>a+e[1],0);
+  const acctN=new Set(fresh.filter(t=>t.acct).map(t=>t.acct)).size;
+  $('impBody').innerHTML=`
+    <div class="review">
+      <div class="rrow"><span>Ready to import</span><b class="${fresh.length?'pos':''}">${fresh.length} trade${fresh.length===1?'':'s'}</b></div>
+      <div class="rrow"><span>Possible duplicates</span><b>${dups.length}</b></div>
+      <div class="rrow"><span>Skipped rows</span><b class="${skipN?'neg':''}">${skipN}</b></div>
+      ${acctN?`<div class="rrow"><span>Matched to accounts</span><b>${acctN} account${acctN>1?'s':''} (by name)</b></div>`:''}
+    </div>
+    ${skipEntries.length?`<p style="color:var(--muted); font-size:12px; margin:10px 0 0; line-height:1.5">${skipEntries.slice(0,5).map(e=>esc(e[0])+' ×'+e[1]).join(' · ')}${skipEntries.length>5?' · …':''}<br>Unknown symbols? Add them under Settings → Instruments, then re-import.</p>`:''}
+    <h4 style="font-size:13px; font-weight:700; margin:14px 0 6px">Assign to account</h4>
+    <select id="imp-acct">
+      <option value="auto">From CSV column / unassigned</option>
+      ${settings.accounts.map(a=>`<option value="${a.id}">All → ${esc(a.name)}</option>`).join('')}
+    </select>
+    ${dups.length?`<div class="checkline"><input type="checkbox" id="imp-dups"><span>Also import the ${dups.length} possible duplicate${dups.length>1?'s':''}</span></div>`:''}
+    <div class="wfoot">
+      <button class="ghost" onclick="closeImport()">Cancel</button>
+      <button class="primary" ${(fresh.length||dups.length)?'':'disabled'} onclick="doImport()">${ic('i-upld')}Import</button>
+    </div>`;
+}
+function doImport(){
+  const ov=$('imp-acct').value;
+  const withDups=$('imp-dups')&&$('imp-dups').checked;
+  let n=0; const base=Date.now();
+  for(const t of imp.ok){
+    if(t._dup&&!withDups) continue;
+    const rec={...t}; delete rec._dup;
+    rec.id=base+(n++);
+    if(ov!=='auto') rec.acct=ov;
+    if(rec.setup&&!settings.setups.includes(rec.setup)) settings.setups.push(rec.setup);
+    trades.push(rec);
+  }
+  closeImport();
+  if(!n){ toast('Nothing to import'); return; }
+  persist(); renderAll();
+  toast('Imported '+n+' trade'+(n>1?'s':''));
+}
+function closeImport(){ imp=null; $('impModal').style.display='none'; }
+
+/* ================= DATA I/O ================= */
+function download(name, text, type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([text],{type})); a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+function exportCSV(){
+  const head='Date,Time,Account,Symbol,Direction,Contracts,SL_pts,TP_pts,Outcome,Result_pts,Gross,Commission,Net,R,Setup,Grade,FollowedPlan,Emotion,Note';
+  const rows=sortTrades(trades).map(t=>[t.date,t.time,csvq(t.acct?acctName(t.acct):''),t.sym,t.dir==='L'?'Long':'Short',t.qty,
+    t.slPts??'',t.tpPts??'',t.outcome.toUpperCase(),t.resultPts,t.gross,t.comm,t.net,t.r??'',
+    csvq(t.setup),t.grade,t.plan?'Yes':'No',t.emotion,csvq(t.note)].join(','));
+  download('trading-journal-'+todayStr()+'.csv', head+'\n'+rows.join('\n'), 'text/csv');
+}
+function csvq(s){ s=String(s==null?'':s); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
+function exportJSON(){
+  settings.lastBackup=Date.now(); persist();
+  download('trading-journal-backup-'+todayStr()+'.json', JSON.stringify({version:3,settings,trades},null,1), 'application/json');
+  $('backupBanner').style.display='none';
+}
+function importJSON(ev){
+  const f=ev.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{ try{
+      const d=JSON.parse(r.result);
+      if(!Array.isArray(d.trades)) throw 0;
+      if(!confirm('Restore '+d.trades.length+' trades? This replaces current data.')) return;
+      if(d.settings) settings=Object.assign(structuredClone(DEFAULT_SETTINGS), d.settings);
+      if(!Array.isArray(settings.accounts)) settings.accounts=[];
+      if(!Array.isArray(settings.lastAccts)) settings.lastAccts=[];
+      migrateAccounts();
+      trades=d.trades.map(migrateTrade);
+      persist(); init(); toast('Backup restored');
+    }catch(e){ alert('Not a valid backup file.'); } };
+  r.readAsText(f); ev.target.value='';
+}
+function wipeAll(){
+  if(!confirm('Delete ALL trades, accounts, screenshots and settings? This cannot be undone.'))return;
+  if(!confirm('Really sure? Consider exporting a backup first.'))return;
+  trades=[]; settings=structuredClone(DEFAULT_SETTINGS); persist(); imgWipeAll(); init();
+}
+
+/* ================= INIT ================= */
+function renderAll(){ renderStrip(); renderToday();
+  const active=document.querySelector('nav button.active').dataset.tab;
+  if(active==='dashboard')renderDashboard(); if(active==='calendar')renderCalendar(); if(active==='history')renderHistory();
+  if(active==='settings')renderSettings();
+}
+function init(){
+  renderAll(); renderSettings();
+  if(trades.length>=5 && Date.now()-(settings.lastBackup||0) > 7*24*3600*1000) $('backupBanner').style.display='flex';
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    const sm=$('shotModal'); if(sm&&sm.style.display!=='none'&&sm.style.display!==''){ sm.style.display='none'; return; }
+    if(imp){ closeImport(); return; }
+  }
+  if(!wiz) return;
+  if(e.key==='Escape') closeWizard();
+  if(e.key==='Enter' && e.target.tagName!=='TEXTAREA'){ e.preventDefault(); wizNext(); }
+});
+init();
+persist(); // save any migrated trades
+
+/* Lock to portrait where the platform allows it (Android PWA/fullscreen).
+   iOS Safari doesn't support this - the #rotate-warning overlay covers it there.
+   The Capacitor app gets a true OS-level lock via config instead. */
+try{ if(Math.min(screen.width,screen.height)<600 && screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(()=>{}); }catch(e){}
+
+/* ================= ADS (AdMob via Capacitor) =================
+   Two modes:
+   1. Inside the iOS/Android app (Capacitor + @capacitor-community/admob):
+      - adaptive banner anchored at the bottom of every page
+      - one interstitial per app launch, 120s after open (15s while
+        ADS.testing; skipped while the rewarded ad-free day is active)
+      - rewarded ad in Settings: watch a video -> banner off until midnight
+        (interstitials also skipped while ad-free)
+   2. Plain browser / PWA: no ads. Add ?adpreview to the URL to preview
+      the banner space and layout shift.
+   TODO before release:
+   - Create ad units at https://apps.admob.com and paste the real IDs below
+     (the rewarded IDs here are Google's official TEST units - safe while developing).
+   - Set ADS.testing = false.
+*/
+/* LIVE ad units (App ID in AndroidManifest.xml is live too).
+   android: banner "BottomBanner", interstitial "PopUp", rewarded ad-free-12h.
+   iOS entries are Google samples — iOS build has never been tested. */
+const ADS={
+  banner:{ android:'ca-app-pub-6292624708272011/2247759500', ios:'ca-app-pub-3940256099942544/2934735716' },
+  interstitial:{ android:'ca-app-pub-6292624708272011/7650305595', ios:'ca-app-pub-3940256099942544/4411468910' },
+  rewarded:{ android:'ca-app-pub-6292624708272011/5924029066', ios:'ca-app-pub-3940256099942544/1712485313' },
+  testing:false
+};
+const LS_ADNOTICE='ftj_adNotice';
+const LS_ADS='ftj_adstate';
+/* one interstitial per app launch, this long after the app opens */
+const INTER_DELAY_MS = 120000;   /* 2 minutes (15s while ADS.testing is true) */
+let adState = load(LS_ADS, {freeUntil:0, lastRedeemed:''});
+let interReady=false, interPreparing=false, adPlat='android', rewardListenerSet=false;
+let interShownThisLaunch=false, interTries=0;
+function saveAdState(){ localStorage.setItem(LS_ADS, JSON.stringify(adState)); natMirror(); }
+function adFreeActive(){ return (adState.freeUntil||0) > Date.now(); }
+/* preload pattern: keep an interstitial loaded in the background so show() is instant */
+async function prepareInter(){
+  const AdMob=P('AdMob'); if(!AdMob||interReady||interPreparing) return;
+  interPreparing=true;
+  try{ await AdMob.prepareInterstitial({adId:ADS.interstitial[adPlat], isTesting:ADS.testing}); interReady=true; }
+  catch(e){ console.warn('interstitial prepare failed:', e); if(ADS.testing) toast('Test: interstitial failed to load'); }
+  interPreparing=false;
+}
+
+function adPlugin(){ return P('AdMob'); }
+function setAdHeight(px){ document.documentElement.style.setProperty('--ad-h', px+'px'); }
+
+async function initAds(){
+  const AdMob=adPlugin();
+  if(!AdMob){
+    if(new URLSearchParams(location.search).has('adpreview')){ $('adPreview').style.display='flex'; setAdHeight(56); }
+    return;
+  }
+  const plat = window.Capacitor.getPlatform()==='ios' ? 'ios' : 'android';
+  try{
+    await AdMob.initialize();
+    try{ // iOS App Tracking Transparency prompt + EU/UK consent form (both required by AdMob policy)
+      const consent=await AdMob.requestConsentInfo();
+      const tracking=await AdMob.trackingAuthorizationStatus();
+      if(tracking.status==='notDetermined') await AdMob.requestTrackingAuthorization();
+      if(consent.isConsentFormAvailable && consent.status==='REQUIRED') await AdMob.showConsentForm();
+    }catch(e){ console.warn('ads consent flow:', e); }
+    if(!adFreeActive()){
+      AdMob.addListener('bannerAdSizeChanged', s=>setAdHeight(s&&s.height?s.height:0));
+      await AdMob.showBanner({ adId:ADS.banner[plat], adSize:'ADAPTIVE_BANNER', position:'BOTTOM_CENTER', margin:0, isTesting:ADS.testing });
+    }
+    adPlat=plat;
+    prepareInter();
+    scheduleLaunchInterstitial();
+  }catch(e){ console.warn('AdMob unavailable:', e); }
+}
+
+/* interstitial trigger: every 4th-5th trade save, capped */
+function scheduleLaunchInterstitial(){
+  setTimeout(tryLaunchInterstitial, ADS.testing ? 15000 : INTER_DELAY_MS);
+}
+async function tryLaunchInterstitial(){
+  const AdMob=P('AdMob');
+  if(!AdMob || interShownThisLaunch || adFreeActive()) return;
+  if(!interReady){                                 /* ad not loaded yet — retry a few times */
+    prepareInter();
+    if(++interTries<=5) setTimeout(tryLaunchInterstitial, 30000);
+    return;
+  }
+  try{
+    await AdMob.showInterstitial();
+    interShownThisLaunch=true; interReady=false;
+  }catch(e){
+    console.warn('interstitial show failed:', e);
+    if(ADS.testing) toast('Test: interstitial failed to show');
+    prepareInter();
+    if(++interTries<=5) setTimeout(tryLaunchInterstitial, 30000);
+  }
+}
+
+/* rewarded ad: banner-free until midnight */
+async function watchAdFree(){
+  const AdMob=P('AdMob'); if(!AdMob){ toast('Only available in the app'); return; }
+  if(adFreeActive()){ toast('Ad-free is already active'); return; }
+  if(adState.lastRedeemed===todayStr()){ toast('Already used today — try again tomorrow'); return; }
+  const plat = window.Capacitor.getPlatform()==='ios' ? 'ios' : 'android';
+  try{
+    if(!rewardListenerSet){
+      AdMob.addListener('onRewardedVideoAdReward', ()=>grantAdFree());
+      rewardListenerSet=true;
+    }
+    await AdMob.prepareRewardVideoAd({adId:ADS.rewarded[plat], isTesting:ADS.testing});
+    await AdMob.showRewardVideoAd();
+  }catch(e){ toast('Ad not available right now — try again later'); }
+}
+async function grantAdFree(){
+  adState.freeUntil=Date.now()+12*3600*1000;   /* 12 hours */
+  adState.lastRedeemed=todayStr();             /* once per calendar day */
+  saveAdState();
+  const AdMob=P('AdMob');
+  if(AdMob){ try{ await AdMob.removeBanner(); }catch(e){} }
+  setAdHeight(0);
+  updateRewardUI();
+  toast('Banner ads off for 12 hours');
+}
+function updateRewardUI(){
+  const st=$('ap-rewardStatus'); if(!st) return;
+  if(adFreeActive()){
+    st.textContent='Ad-free active until '+new Date(adState.freeUntil).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' — thanks for the support!';
+  } else if(adState.lastRedeemed===todayStr()){
+    st.textContent='Already used today — available again tomorrow.';
+  } else {
+    st.textContent='Watch a short video and the banner ad disappears for 12 hours. Once per day.';
+  }
+}
+/* ================= P&L SHARE CARD ================= */
+let pnlCanvas=null, pnlDate='';
+function rrect(x,px,py,w,h,r){ x.beginPath(); x.moveTo(px+r,py); x.arcTo(px+w,py,px+w,py+h,r); x.arcTo(px+w,py+h,px,py+h,r); x.arcTo(px,py+h,px,py,r); x.arcTo(px,py,px+w,py,r); x.closePath(); }
+function pnlMoney(v){ return (v<0?'-$':(v>0?'+$':'$'))+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function drawPnlCard(ds){
+  const sel=$('c-acct')?$('c-acct').value:'';
+  const list=byAcct(trades,sel).filter(t=>t.date===ds);
+  const n=list.length, wins=list.filter(t=>t.net>0).length, losses=list.filter(t=>t.net<0).length;
+  const net=list.reduce((a,t)=>a+t.net,0), wr=n?Math.round(wins/n*100):0;
+  const useAcct=list.some(t=>t.acct);
+  const groups={};
+  list.forEach(t=>{ const k=useAcct?(t.acct?acctName(t.acct):'No account'):t.sym;
+    (groups[k]=groups[k]||{n:0,net:0}); groups[k].n++; groups[k].net+=t.net; });
+  const rows=Object.entries(groups).sort((a,b)=>b[1].net-a[1].net).slice(0,5);
+  const GREEN='#34d399', RED='#f87171', MUT='#8b98b3', TXT='#e9eef8', PAN='#12182a', BOR='#242f4a';
+  const W=1200, H=620, S=2, F="-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+  const cv=document.createElement('canvas'); cv.width=W*S; cv.height=H*S;
+  const x=cv.getContext('2d'); x.scale(S,S);
+  // background + border
+  rrect(x,0,0,W,H,44); x.save(); x.clip();
+  const g=x.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0d1220'); g.addColorStop(1,'#0a0d14');
+  x.fillStyle=g; x.fillRect(0,0,W,H);
+  const rg=x.createRadialGradient(W/2,-120,60,W/2,-120,760);
+  rg.addColorStop(0,'rgba(96,165,250,.16)'); rg.addColorStop(1,'rgba(96,165,250,0)');
+  x.fillStyle=rg; x.fillRect(0,0,W,H);
+  x.restore();
+  rrect(x,1,1,W-2,H-2,44); x.strokeStyle=BOR; x.lineWidth=2; x.stroke();
+  // logo
+  const lg=x.createLinearGradient(48,42,118,112); lg.addColorStop(0,'#3b82f6'); lg.addColorStop(1,'#22d3ee');
+  rrect(x,48,42,70,70,20); x.fillStyle=lg; x.fill();
+  x.strokeStyle='#07101d'; x.fillStyle='#07101d'; x.lineWidth=4; x.lineCap='round';
+  x.beginPath(); x.moveTo(71,56); x.lineTo(71,98); x.stroke();
+  rrect(x,63,65,16,24,5); x.fill();
+  x.beginPath(); x.moveTo(95,52); x.lineTo(95,102); x.stroke();
+  rrect(x,87,62,16,30,5); x.fill();
+  // title
+  x.textAlign='left'; x.textBaseline='alphabetic';
+  x.font='800 38px '+F; x.fillStyle=TXT;
+  x.fillText('The Liquidity', 138, 90);
+  const tw=x.measureText('The Liquidity ').width;
+  x.fillStyle='#38bdf8'; x.fillText('Book', 138+tw, 90);
+  // date block
+  x.textAlign='right';
+  x.font='800 16px '+F; x.fillStyle='#22d3ee';
+  x.fillText('D A I L Y   R E C A P', W-56, 62);
+  x.font='600 22px '+F; x.fillStyle=MUT;
+  x.fillText(new Date(ds+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}), W-56, 94);
+  // left column: stat boxes
+  function panel(px,py,w,h){ rrect(x,px,py,w,h,22); x.fillStyle=PAN; x.fill(); rrect(x,px,py,w,h,22); x.strokeStyle=BOR; x.lineWidth=1.5; x.stroke(); }
+  panel(48,150,207,110); panel(271,150,207,110);
+  x.textAlign='left'; x.font='700 14px '+F; x.fillStyle=MUT;
+  x.fillText('TRADES', 76, 188); x.fillText('WIN RATE', 299, 188);
+  x.font='800 44px '+F; x.fillStyle=TXT;
+  x.fillText(String(n), 76, 240); x.fillText(wr+'%', 299, 240);
+  panel(48,280,430,200);
+  x.font='700 14px '+F; x.fillStyle=MUT; x.fillText('NET P&L', 76, 320);
+  x.font='800 68px '+F; x.fillStyle=net>0?GREEN:(net<0?RED:MUT);
+  x.fillText(pnlMoney(net), 76, 398);
+  x.font='600 19px '+F; x.fillStyle=MUT;
+  x.fillText(wins+(wins===1?' win':' wins')+' \u00b7 '+losses+(losses===1?' loss':' losses'), 76, 442);
+  // right column: breakdown table
+  panel(510,150,W-48-510,330);
+  x.font='800 21px '+F; x.fillStyle=TXT;
+  x.fillText(useAcct?'By account':'By instrument', 538, 196);
+  x.font='700 13px '+F; x.fillStyle=MUT;
+  x.fillText(useAcct?'ACCOUNT':'INSTRUMENT', 538, 236);
+  x.textAlign='right'; x.fillText('TRADES', W-230, 236); x.fillText('DAY P&L', W-84, 236);
+  x.strokeStyle=BOR; x.lineWidth=1; x.beginPath(); x.moveTo(538,250); x.lineTo(W-84,250); x.stroke();
+  rows.forEach((r2,i)=>{
+    const ry=290+i*38;
+    x.textAlign='left'; x.font='600 19px '+F; x.fillStyle=TXT;
+    let nm=r2[0]; if(nm.length>24) nm=nm.slice(0,23)+'\u2026';
+    x.fillText(nm, 538, ry);
+    x.textAlign='right'; x.fillStyle=MUT; x.fillText(String(r2[1].n), W-230, ry);
+    x.fillStyle=r2[1].net>0?GREEN:(r2[1].net<0?RED:MUT);
+    x.font='700 19px '+F; x.fillText(pnlMoney(r2[1].net), W-84, ry);
+  });
+  // footer
+  x.textAlign='left'; x.font='600 16px '+F; x.fillStyle='#5a6a8c';
+  x.fillText('Logged with The Liquidity Book', 48, H-38);
+  return cv;
+}
+function openPnlCard(ds){
+  pnlDate=ds; pnlCanvas=drawPnlCard(ds);
+  $('pnlImg').src=pnlCanvas.toDataURL('image/png');
+  $('pnlModal').style.display='flex';
+}
+function pnlViewTrades(){ $('pnlModal').style.display='none'; dayDrill(pnlDate); }
+async function savePnlCard(){
+  if(!pnlCanvas) return;
+  const M=P('Media');
+  if(M){
+    try{
+      const ALBUM='The Liquidity Book';
+      let id=null;
+      try{ const r=await M.getAlbums(); const a=(r&&r.albums||[]).find(a=>a.name===ALBUM); if(a) id=a.identifier; }catch(e){}
+      if(!id){
+        await M.createAlbum({name:ALBUM});
+        try{ const r2=await M.getAlbums(); const a2=(r2&&r2.albums||[]).find(a=>a.name===ALBUM); if(a2) id=a2.identifier; }catch(e){}
+      }
+      await M.savePhoto({path:pnlCanvas.toDataURL('image/png'), albumIdentifier:id});
+      toast('Saved to Photos');
+    }catch(e){ toast('Could not save image'); }
+    return;
+  }
+  const a=document.createElement('a');
+  a.href=pnlCanvas.toDataURL('image/png'); a.download='liquidity-book-'+pnlDate+'.png'; a.click();
+}
+async function sharePnlCard(){
+  if(!pnlCanvas) return;
+  const name='liquidity-book-'+pnlDate+'.png';
+  const FS=P('Filesystem'), SH=P('Share');
+  if(FS&&SH){
+    try{
+      const b64=pnlCanvas.toDataURL('image/png').split(',')[1];
+      const r=await FS.writeFile({path:name, data:b64, directory:'CACHE'});
+      await SH.share({title:'Daily P&L '+pnlDate, url:r.uri});
+      return;
+    }catch(e){ if(/cancel/i.test(String(e&&e.message||e))) return; }
+  }
+  const a=document.createElement('a'); a.href=pnlCanvas.toDataURL('image/png'); a.download=name; a.click();
+}
+
+/* ================= NATIVE FEATURES (Capacitor) ================= */
+const LS_APP='ftj_app';
+let appPrefs = load(LS_APP, {notif:false, notifTime:'17:00', bio:false});
+const natPlugins={};
+function P(n){
+  const c=window.Capacitor;
+  if(!(c&&c.isNativePlatform&&c.isNativePlatform())) return null;
+  if(!(n in natPlugins)){
+    try{
+      if(c.Plugins && c.Plugins[n]) natPlugins[n]=c.Plugins[n];
+      else if(window.capacitorExports && window.capacitorExports.registerPlugin) natPlugins[n]=window.capacitorExports.registerPlugin(n);
+      else natPlugins[n]=null;
+    }catch(e){ console.warn('plugin '+n, e); natPlugins[n]=null; }
+  }
+  return natPlugins[n];
+}
+function hapt(style){ const H=P('Haptics'); if(H) H.impact({style:style||'LIGHT'}).catch(()=>{}); }
+function saveAppPrefs(){ localStorage.setItem(LS_APP, JSON.stringify(appPrefs)); natMirror(); }
+
+/* --- durable storage: mirror localStorage into native Preferences, restore if WebView data is lost --- */
+const NAT_KEYS=[LS_TRADES,LS_SET,LS_ADNOTICE,LS_APP,LS_ADS];
+async function natMirror(){
+  const Pref=P('Preferences'); if(!Pref) return;
+  try{ for(const k of NAT_KEYS){ const v=localStorage.getItem(k); if(v!=null) await Pref.set({key:k, value:v}); } }catch(e){}
+}
+async function natRestore(){
+  const Pref=P('Preferences'); if(!Pref) return;
+  if(localStorage.getItem(LS_TRADES)!=null){ natMirror(); return; }
+  try{
+    let found=false;
+    for(const k of NAT_KEYS){ const r=await Pref.get({key:k}); if(r&&r.value!=null){ localStorage.setItem(k,r.value); found=true; } }
+    if(found && !sessionStorage.getItem('ftj_restored')){ sessionStorage.setItem('ftj_restored','1'); location.reload(); }
+  }catch(e){}
+}
+const _persist=persist;
+persist=function(){ _persist(); natMirror(); };
+
+/* --- save backup straight into the device's Files app (Documents/The Liquidity Book) --- */
+const BACKUP_DIR='The Liquidity Book';
+async function saveToDevice(name,text){
+  const FS=P('Filesystem');
+  if(!FS){ download(name,text,'application/json'); return; } /* browser: normal file download */
+  try{
+    try{
+      const perm=await FS.checkPermissions();
+      if(perm && perm.publicStorage && perm.publicStorage!=='granted') await FS.requestPermissions();
+    }catch(e){}
+    await FS.writeFile({path:BACKUP_DIR+'/'+name, data:text, directory:'DOCUMENTS', encoding:'utf8', recursive:true});
+    toast('Saved to Documents/'+BACKUP_DIR);
+  }catch(e){
+    console.warn('saveToDevice:', e);
+    toast('Could not write to Files — opening share instead');
+    download(name,text,'application/json'); /* fallback: share sheet */
+  }
+}
+async function exportJSONToDevice(){
+  settings.lastBackup=Date.now(); persist();
+  await saveToDevice('trading-journal-backup-'+todayStr()+'.json', JSON.stringify({version:3,settings,trades},null,1));
+  $('backupBanner').style.display='none';
+}
+
+/* --- real file export: write to app cache, hand to Android share sheet --- */
+const _download=download;
+download=async function(name,text,type){
+  const FS=P('Filesystem'), SH=P('Share');
+  if(FS&&SH){
+    try{
+      const r=await FS.writeFile({path:name, data:text, directory:'CACHE', encoding:'utf8'});
+      await SH.share({title:name, url:r.uri});
+      return;
+    }catch(e){ if(/cancel/i.test(String(e&&e.message||e))) return; }
+  }
+  _download(name,text,type);
+};
+
+/* --- haptic tick on feedback --- */
+const _toast=toast;
+toast=function(msg){ _toast(msg); hapt('LIGHT'); };
+
+/* --- daily log reminder --- */
+async function applyNotif(){
+  const LN=P('LocalNotifications'); if(!LN) return;
+  try{
+    await LN.cancel({notifications:[{id:1}]});
+    if(appPrefs.notif){
+      const perm=await LN.requestPermissions();
+      if(perm.display!=='granted'){ appPrefs.notif=false; $('ap-notif').checked=false; saveAppPrefs(); toast('Notifications not allowed'); return; }
+      const parts=(appPrefs.notifTime||'17:00').split(':');
+      await LN.schedule({notifications:[{id:1, title:'The Liquidity Book',
+        body:"Market's closed \u2014 log today's trades.",
+        schedule:{on:{hour:+parts[0], minute:+parts[1]}, allowWhileIdle:true}}]});
+      toast('Daily reminder set \u2014 '+appPrefs.notifTime);
+    } else toast('Reminder off');
+  }catch(e){ toast('Could not set reminder'); }
+}
+function uiNotifChanged(){ appPrefs.notif=$('ap-notif').checked; appPrefs.notifTime=$('ap-time').value||'17:00'; saveAppPrefs(); applyNotif(); }
+
+/* --- biometric lock --- */
+function bioApi(){ return (window.capacitorBiometricAuth && window.capacitorBiometricAuth.BiometricAuth) || null; }
+async function uiBioChanged(){
+  const B=bioApi(); if(!B) return;
+  const on=$('ap-bio').checked;
+  if(on){
+    try{ await B.authenticate({reason:'Confirm to enable app lock', cancelTitle:'Cancel', allowDeviceCredential:true}); }
+    catch(e){ $('ap-bio').checked=false; toast('App lock not enabled'); return; }
+  }
+  appPrefs.bio=on; saveAppPrefs(); toast(on?'App lock enabled':'App lock disabled');
+}
+async function bioUnlock(){
+  const B=bioApi(); if(!B){ $('bioLock').style.display='none'; return; }
+  try{
+    await B.authenticate({reason:'Unlock your journal', cancelTitle:'Cancel', allowDeviceCredential:true});
+    $('bioLock').style.display='none'; hapt('MEDIUM');
+  }catch(e){ /* stay locked */ }
+}
+
+/* --- ad consent revocation (GDPR requirement) --- */
+async function manageConsent(){
+  const AdMob=P('AdMob'); if(!AdMob){ toast('Only available in the app'); return; }
+  try{
+    await AdMob.resetConsentInfo();
+    const info=await AdMob.requestConsentInfo();
+    if(info && info.isConsentFormAvailable){ await AdMob.showConsentForm(); toast('Ad preferences updated'); }
+    else toast('No consent required in your region');
+  }catch(e){ toast('Consent form unavailable right now'); }
+}
+
+/* --- app shortcuts arrive as deep links --- */
+function handleAppUrl(u){
+  u=String(u||'');
+  if(u.indexOf('://log')>=0){ switchTab('journal'); openWizard(); }
+  else if(u.indexOf('://stats')>=0){ switchTab('dashboard'); }
+}
+
+/* --- native boot --- */
+async function nativeInit(){
+  const c=window.Capacitor;
+  if(!(c&&c.isNativePlatform&&c.isNativePlatform())) return;
+  $('appPanel').style.display='';
+  $('ap-notif').checked=!!appPrefs.notif;
+  $('ap-time').value=appPrefs.notifTime||'17:00';
+  $('ap-bio').checked=!!appPrefs.bio;
+  updateRewardUI();
+  const B=bioApi();
+  if(B){
+    try{ const r=await B.checkBiometry(); if(!(r&&(r.isAvailable||r.deviceIsSecure))){ $('ap-bio').disabled=true; if(appPrefs.bio){appPrefs.bio=false; saveAppPrefs();} } }catch(e){}
+  } else $('ap-bio').disabled=true;
+  if(appPrefs.bio && bioApi()){ $('bioLock').style.display='flex'; bioUnlock(); }
+  natRestore();
+  if(window.capacitorApp && window.capacitorApp.App){
+    const A=window.capacitorApp.App;
+    A.addListener('appUrlOpen', d=>handleAppUrl(d&&d.url));
+    try{ const l=await A.getLaunchUrl(); if(l&&l.url) handleAppUrl(l.url); }catch(e){}
+  }
+}
+
+function adNativeBoot(){
+  if(!localStorage.getItem(LS_ADNOTICE)) $('adNotice').style.display='flex';
+  $('adNoticeOk').addEventListener('click',()=>{
+    localStorage.setItem(LS_ADNOTICE,'1'); natMirror();
+    $('adNotice').style.display='none';
+  });
+  nativeInit();
+  initAds();
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', adNativeBoot);
+else adNativeBoot();
+/* v4: card-based log wizard, multi-account logging, SVG icons, mobile tab bar */
+/* v5: consistency rules, payout logging, trade screenshots, CSV import */
+/* v6: interstitial moved to every 4th-5th trade save (capped 2/day), rewarded ad-free day */
+/* v7: interstitial = once per app launch, 120s after open */
+</script>
+<!-- P&L share card -->
+<div id="pnlModal" style="display:none">
+  <div class="pcard">
+    <img id="pnlImg" alt="Daily P&L card">
+    <div class="prow">
+      <button class="primary" onclick="sharePnlCard()"><svg class="ic"><use href="#i-upld"/></svg>Share</button>
+      <button class="ghost" onclick="savePnlCard()"><svg class="ic"><use href="#i-down"/></svg>Save to Photos</button>
+      <button class="ghost" onclick="pnlViewTrades()"><svg class="ic"><use href="#i-hist"/></svg>View trades</button>
+      <button class="ghost" onclick="document.getElementById('pnlModal').style.display='none'">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- screenshot viewer -->
+<div id="shotModal" style="display:none">
+  <img id="shotImg" alt="Trade screenshot">
+  <div class="prow" id="shotNavs" style="display:flex; gap:10px; align-items:center">
+    <button class="ghost" onclick="shotNav(-1)">&#8249; Prev</button>
+    <span id="shotCount" style="color:var(--muted); font-size:13px"></span>
+    <button class="ghost" onclick="shotNav(1)">Next &#8250;</button>
+  </div>
+  <button class="ghost" onclick="document.getElementById('shotModal').style.display='none'">Close</button>
+</div>
+
+<!-- CSV import -->
+<div id="impModal" class="modal" style="display:none">
+  <div class="wcard">
+    <div class="whead">
+      <b><svg class="ic"><use href="#i-upld"/></svg>Import CSV</b>
+      <button class="iconbtn" onclick="closeImport()" title="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div id="impBody"></div>
+  </div>
+</div>
+
+<!-- biometric lock -->
+<div id="bioLock" style="display:none">
+  <div class="logo" style="width:58px;height:58px;border-radius:17px"><svg style="width:32px;height:32px"><use href="#i-log"/></svg></div>
+  <h2 style="font-size:18px">The Liquidity Book</h2>
+  <p style="color:var(--muted);font-size:13.5px">Unlock to open your journal</p>
+  <button class="primary" onclick="bioUnlock()">Unlock</button>
+</div>
+
+<!-- first-launch ad notice -->
+<div id="adNotice" style="display:none">
+  <div class="card">
+    <h3><svg class="ic"><use href="#i-check"/></svg>This app is free</h3>
+    <p>The Liquidity Book is free to use. To keep it that way, it shows a small banner ad and one full-screen ad a couple of minutes after the app opens.</p>
+    <p>Don't want the banner? Watch a short video in Settings and it disappears for 12 hours (once per day).</p>
+    <p>Ads never touch your journal &mdash; every trade you log stays on your device.</p>
+    <button class="primary" id="adNoticeOk">Got it</button>
+  </div>
+</div>
+
+<!-- browser-only ad placeholder (visible with ?adpreview in the URL) -->
+<div id="adPreview" style="display:none"><span class="badge">AD</span> Banner ad appears here in the app</div>
+
+<!-- orientation lock overlay -->
+<div id="rotate-warning">
+  <svg viewBox="0 0 24 24"><path d="M12 2v8M9 7l3-3 3 3M16 14v5a3 3 0 0 1-3 3h-2a3 3 0 0 1-3-3v-5"/></svg>
+  <h2>Rotate your device</h2>
+  <p>Please rotate your phone to portrait mode to use this app.</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Liquidity Book</string>
+    <string name="title_activity_main">Liquidity Book</string>
+    <string name="package_name">com.arigoni.liquiditybook</string>
+    <string name="custom_url_scheme">com.arigoni.liquiditybook</string>
+    <string name="shortcut_log">Log Trade</string>
+    <string name="shortcut_log_long">Log a new trade</string>
+    <string name="shortcut_stats">Dashboard</string>
+    <string name="shortcut_stats_long">View dashboard</string>
+</resources>
