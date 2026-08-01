@@ -1,0 +1,50 @@
+Date,Time,Account,Symbol,Direction,Contracts,SL_pts,TP_pts,Outcome,Result_pts,Gross,Commission,Net,R,Setup,Grade,FollowedPlan,Emotion,Note
+2026-07-01,10:31,,MNQ,Short,1,23.00,47.25,manual,-18.00,-36.00,1.70,-37.70,-0.82,News Play,B,Yes,FOMO,
+2026-07-01,10:11,,MNQ,Long,2,37.00,36.75,sl,-34.25,-137.00,3.40,-140.40,-0.95,News Play,C,Yes,Calm,"Mistimed the entry, moved fast"
+2026-07-01,13:05,,ES,Short,1,13.25,13.75,sl,-12.00,-600.00,1.70,-601.70,-0.91,Reversal,C,Yes,FOMO,
+2026-07-01,11:13,,MES,Long,2,10.25,18.50,manual,6.00,60.00,3.40,56.60,0.55,Opening Range Breakout,B,Yes,Tired,
+2026-07-06,09:29,,MES,Long,1,11.00,18.75,tp,18.00,90.00,1.70,88.30,1.61,VWAP Pullback,A,Yes,Neutral,
+2026-07-06,13:33,,ES,Long,1,10.50,21.75,sl,-10.50,-525.00,1.70,-526.70,-1.00,Breakout,C,Yes,Confident,
+2026-07-06,13:42,,GC,Short,1,6.60,6.50,tp,6.50,650.00,1.70,648.30,0.98,Trend Continuation,A,Yes,Calm,
+2026-07-06,12:19,,MES,Short,1,10.00,18.00,sl,-9.25,-46.25,1.70,-47.95,-0.96,Support/Resistance,C,Yes,Tired,"Strong trend, trailed the stop"
+2026-07-07,11:42,,MES,Long,1,9.75,14.25,tp,12.75,63.75,1.70,62.05,1.27,Other,A,Yes,Neutral,
+2026-07-07,13:44,,MNQ,Long,1,37.75,30.75,sl,-35.75,-71.50,1.70,-73.20,-0.97,News Play,C,No,Calm,
+2026-07-08,10:55,,ES,Short,1,8.25,12.75,tp,11.75,587.50,1.70,585.80,1.42,Other,A,Yes,Neutral,
+2026-07-09,13:51,,CL,Short,1,0.42,0.53,tp,0.52,520.00,1.70,518.30,1.23,Other,A,Yes,Confident,Oversized after the lunch dip
+2026-07-09,09:24,,MES,Short,1,9.50,18.50,sl,-9.25,-46.25,1.70,-47.95,-1.01,Trend Continuation,C,Yes,Neutral,"Waited for the retest, took it"
+2026-07-09,10:33,,MES,Long,2,11.75,16.50,sl,-10.75,-107.50,3.40,-110.90,-0.94,Opening Range Breakout,C,Yes,Calm,
+2026-07-10,13:18,,MNQ,Long,1,24.50,41.75,sl,-22.25,-44.50,1.70,-46.20,-0.94,Opening Range Breakout,C,No,FOMO,
+2026-07-10,11:24,,MES,Long,2,11.25,13.50,tp,12.00,120.00,3.40,116.60,1.04,Opening Range Breakout,A,Yes,Neutral,
+2026-07-10,11:14,,MES,Short,1,10.25,14.00,sl,-9.75,-48.75,1.70,-50.45,-0.98,Breakout,C,Yes,Neutral,Chased the move late
+2026-07-13,11:43,,MES,Long,1,9.50,17.50,manual,-5.75,-28.75,1.70,-30.45,-0.64,Reversal,B,No,Revenge,
+2026-07-13,14:09,,GC,Long,1,7.80,9.90,sl,-7.20,-720.00,1.70,-721.70,-0.93,Support/Resistance,C,No,Impatient,Good confluence on the level
+2026-07-13,10:08,,MNQ,Short,1,26.25,55.00,manual,-17.25,-34.50,1.70,-36.20,-0.69,News Play,B,Yes,Revenge,Good confluence on the level
+2026-07-14,14:39,,MES,Long,1,8.75,15.00,manual,3.50,17.50,1.70,15.80,0.36,Trend Continuation,B,Yes,Calm,"Strong trend, trailed the stop"
+2026-07-14,11:14,,MES,Short,2,8.50,18.00,sl,-7.75,-77.50,3.40,-80.90,-0.95,Breakout,C,Yes,Anxious,
+2026-07-15,14:54,,MES,Long,1,10.00,16.00,manual,10.50,52.50,1.70,50.80,1.02,Breakout,B,Yes,Anxious,
+2026-07-16,14:50,,MES,Long,2,12.75,18.00,sl,-12.00,-120.00,3.40,-123.40,-0.97,News Play,C,Yes,Revenge,
+2026-07-16,11:39,,MNQ,Long,2,38.75,31.75,sl,-38.75,-155.00,3.40,-158.40,-1.02,Support/Resistance,C,Yes,FOMO,
+2026-07-17,14:33,,MNQ,Short,1,39.75,48.50,sl,-38.50,-77.00,1.70,-78.70,-0.99,Opening Range Breakout,C,Yes,Anxious,Let the runner work
+2026-07-20,09:29,,MNQ,Long,1,23.00,58.50,sl,-20.75,-41.50,1.70,-43.20,-0.94,Reversal,C,Yes,Anxious,
+2026-07-20,09:18,,NQ,Long,1,37.00,48.00,tp,43.75,875.00,1.70,873.30,1.18,Other,A,Yes,Neutral,"Mistimed the entry, moved fast"
+2026-07-21,13:29,,MES,Short,2,13.75,13.00,manual,1.50,15.00,3.40,11.60,0.08,Opening Range Breakout,B,Yes,Impatient,
+2026-07-21,14:26,,ES,Long,1,10.25,19.00,sl,-10.00,-500.00,1.70,-501.70,-0.98,Breakout,C,Yes,Impatient,
+2026-07-21,10:20,,MNQ,Short,1,29.50,40.00,manual,-16.25,-32.50,1.70,-34.20,-0.58,Opening Range Breakout,B,No,Impatient,
+2026-07-22,10:37,,MNQ,Short,2,20.25,51.75,sl,-18.75,-75.00,3.40,-78.40,-0.97,Opening Range Breakout,C,Yes,Anxious,
+2026-07-22,10:37,,ES,Long,1,14.00,20.75,tp,19.00,950.00,1.70,948.30,1.35,News Play,A,Yes,Neutral,
+2026-07-23,10:47,,MES,Long,1,13.00,18.50,tp,18.25,91.25,1.70,89.55,1.38,Other,A,Yes,Confident,
+2026-07-24,09:59,,MES,Long,2,9.00,14.25,manual,9.25,92.50,3.40,89.10,0.99,Trend Continuation,B,Yes,Anxious,"Strong trend, trailed the stop"
+2026-07-24,14:57,,MNQ,Long,1,21.50,42.00,tp,40.75,81.50,1.70,79.80,1.86,Trend Continuation,A,Yes,Confident,
+2026-07-27,10:32,,MES,Long,2,12.75,13.25,sl,-12.50,-125.00,3.40,-128.40,-1.01,Other,C,Yes,Anxious,
+2026-07-27,14:46,,ES,Long,1,15.25,18.75,sl,-15.00,-750.00,1.70,-751.70,-0.99,Support/Resistance,C,Yes,Impatient,
+2026-07-28,11:35,,MES,Long,1,10.75,13.50,tp,12.00,60.00,1.70,58.30,1.08,Reversal,A,Yes,Neutral,
+2026-07-28,12:18,,MES,Short,1,11.75,15.00,tp,13.50,67.50,1.70,65.80,1.12,Reversal,A,Yes,Confident,"Mistimed the entry, moved fast"
+2026-07-28,10:28,,MNQ,Long,1,21.00,41.50,sl,-20.25,-40.50,1.70,-42.20,-1.00,Support/Resistance,C,Yes,Anxious,
+2026-07-29,09:23,,CL,Long,1,0.50,0.98,sl,-0.49,-490.00,1.70,-491.70,-0.98,Reversal,C,Yes,Revenge,
+2026-07-29,10:00,,MNQ,Short,1,35.25,50.00,tp,45.25,90.50,1.70,88.80,1.26,Opening Range Breakout,A,Yes,Calm,
+2026-07-29,10:29,,MES,Long,2,10.25,18.00,sl,-10.00,-100.00,3.40,-103.40,-1.01,News Play,C,No,Anxious,
+2026-07-30,09:12,,MES,Long,1,13.00,18.25,manual,8.75,43.75,1.70,42.05,0.65,Breakout,B,Yes,Tired,
+2026-07-30,14:35,,MNQ,Long,1,39.75,58.75,manual,9.75,19.50,1.70,17.80,0.22,Opening Range Breakout,B,Yes,Impatient,"Two-way day, kept it small"
+2026-07-31,10:46,,MES,Long,2,13.00,12.00,tp,11.75,117.50,3.40,114.10,0.88,Breakout,A,No,Confident,"Cut early, right call"
+2026-07-31,14:48,,MES,Long,1,10.75,17.50,sl,-10.25,-51.25,1.70,-52.95,-0.99,Other,C,No,FOMO,"Two-way day, kept it small"
+2026-07-31,11:19,,MES,Short,1,14.00,13.75,tp,13.00,65.00,1.70,63.30,0.90,News Play,A,Yes,Confident,
