@@ -509,6 +509,33 @@ details.fold .fold-body{padding:12px 14px 14px; border-top:1px solid var(--borde
 .theme-swatch .dots{display:flex; gap:4px;}
 .theme-swatch .dots i{width:24px; height:24px; border-radius:50%; border:1px solid rgb(var(--shadow-rgb) / .2);
   box-shadow:0 2px 6px rgb(var(--shadow-rgb) / .3);}
+/* ---------- micro animations ---------- */
+@keyframes secIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
+@keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
+@keyframes popIn{from{opacity:0; transform:scale(.94) translateY(6px);} to{opacity:1; transform:none;}}
+@keyframes cardIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;}}
+main>section.anim{animation:secIn .32s cubic-bezier(.2,.7,.3,1);}
+.modal .wcard{animation:popIn .22s cubic-bezier(.2,.7,.3,1);}
+.wbody{animation:fadeIn .2s ease;}
+.cards .card{animation:cardIn .35s cubic-bezier(.2,.7,.3,1) both;}
+.cards .card:nth-child(2){animation-delay:.045s;} .cards .card:nth-child(3){animation-delay:.09s;}
+.cards .card:nth-child(4){animation-delay:.135s;} .cards .card:nth-child(5){animation-delay:.18s;}
+.cards .card:nth-child(6){animation-delay:.225s;}
+.card{transition:transform .18s ease, border-color .18s ease;}
+.card:hover{transform:translateY(-2px); border-color:var(--border2);}
+.bars .bar,.pbar .fill{transition:width .55s cubic-bezier(.2,.7,.3,1);}
+.toast{transition:opacity .3s ease, transform .3s cubic-bezier(.2,.7,.3,1); transform:translateX(-50%) translateY(18px);}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+.subpanel{background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:13px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);}
+.subpanel h3{font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px; display:flex; align-items:center; gap:7px;}
+.subpanel h3 .ic{color:var(--accent); width:14px; height:14px;}
+.ob-hero{text-align:center; padding:6px 0 4px;}
+.ob-hero .logo{width:54px; height:54px; border-radius:16px; margin:0 auto 14px;}
+.ob-hero h3{font-size:19px; letter-spacing:-.02em;}
+.ob-hero p{color:var(--muted); font-size:13.5px; line-height:1.6; margin-top:8px;}
+.ob-feats{display:flex; flex-direction:column; gap:9px; margin-top:16px;}
+.ob-feat{display:flex; gap:10px; align-items:flex-start; font-size:13px; line-height:1.5; color:var(--text);}
+.ob-feat .ic{width:16px; height:16px; color:var(--accent); margin-top:1px; flex:none;}
 /* ---------- mobile ---------- */
 @media(max-width:860px){
   .split2{grid-template-columns:1fr;}
@@ -599,7 +626,7 @@ details.fold .fold-body{padding:12px 14px 14px; border-top:1px solid var(--borde
   </div>
 
   <!-- ============ JOURNAL ============ -->
-  <section id="tab-journal">
+  <section id="tab-journal" class="anim">
     <button class="bigcta" onclick="openWizard()"><svg class="ic"><use href="#i-plus"/></svg>Log Trade</button>
     <div class="panel">
       <h2><svg class="ic"><use href="#i-clock"/></svg>Today <small id="todaySummary"></small></h2>
@@ -608,7 +635,7 @@ details.fold .fold-body{padding:12px 14px 14px; border-top:1px solid var(--borde
   </section>
 
   <!-- ============ DASHBOARD ============ -->
-  <section id="tab-dashboard" style="display:none">
+  <section id="tab-dashboard" class="anim" style="display:none">
     <div class="filters">
       <label style="margin:0">Account</label>
       <select id="d-acct" onchange="renderDashboard()"></select>
@@ -624,10 +651,21 @@ details.fold .fold-body{padding:12px 14px 14px; border-top:1px solid var(--borde
       <div class="panel"><h2><svg class="ic"><use href="#i-dash"/></svg>P&L by Instrument</h2><div class="bars" id="bySym"></div></div>
       <div class="panel"><h2><svg class="ic"><use href="#i-cal"/></svg>P&L by Weekday</h2><div class="bars" id="byDay"></div></div>
     </div>
+    <div class="panel">
+      <h2><svg class="ic"><use href="#i-trend"/></svg>Analytics <small>edge by direction, grade, risk & timing</small></h2>
+      <div class="split2">
+        <div class="subpanel"><h3><svg class="ic"><use href="#i-scale"/></svg>By Direction</h3><div class="bars" id="byDir"></div></div>
+        <div class="subpanel"><h3><svg class="ic"><use href="#i-book"/></svg>By Grade</h3><div class="bars" id="byGrade"></div></div>
+      </div>
+      <div class="split2" style="margin-top:12px">
+        <div class="subpanel"><h3><svg class="ic"><use href="#i-target"/></svg>R-distribution</h3><div class="bars" id="rHist"></div></div>
+        <div class="subpanel"><h3><svg class="ic"><use href="#i-clock"/></svg>By Hour of Day</h3><div class="bars" id="byHour"></div></div>
+      </div>
+    </div>
   </section>
 
   <!-- ============ CALENDAR ============ -->
-  <section id="tab-calendar" style="display:none">
+  <section id="tab-calendar" class="anim" style="display:none">
     <div class="panel">
       <div class="cal-head">
         <button class="ghost" onclick="calMove(-1)"><svg class="ic"><use href="#i-back"/></svg></button>
@@ -641,7 +679,7 @@ details.fold .fold-body{padding:12px 14px 14px; border-top:1px solid var(--borde
   </section>
 
   <!-- ============ HISTORY ============ -->
-  <section id="tab-history" style="display:none">
+  <section id="tab-history" class="anim" style="display:none">
     <div class="panel">
       <h2><svg class="ic"><use href="#i-hist"/></svg>Trade History <small id="histCount"></small></h2>
       <div class="filters">
@@ -662,7 +700,7 @@ details.fold .fold-body{padding:12px 14px 14px; border-top:1px solid var(--borde
   </section>
 
   <!-- ============ SETTINGS ============ -->
-  <section id="tab-settings" style="display:none">
+  <section id="tab-settings" class="anim" style="display:none">
     <div class="panel">
       <h2><svg class="ic"><use href="#i-wallet"/></svg>Prop Firm Accounts <small>enter your firm's rules — progress & drawdown auto-tracked</small></h2>
       <div id="acctList"></div>
@@ -738,6 +776,7 @@ details.fold .fold-body{padding:12px 14px 14px; border-top:1px solid var(--borde
       <div class="checkline" style="margin-top:0"><input type="checkbox" id="ap-notif" onchange="uiNotifChanged()"><span>Daily reminder to log trades</span></div>
       <div style="max-width:170px; margin-top:10px"><label>Reminder time</label><input type="time" id="ap-time" onchange="uiNotifChanged()"></div>
       <div class="checkline" style="margin-top:14px"><input type="checkbox" id="ap-bio" onchange="uiBioChanged()"><span>Require fingerprint / face unlock on open</span></div>
+      <div class="checkline" style="margin-top:14px"><input type="checkbox" id="ap-autobk" onchange="uiAutoBkChanged()"><span>Auto-backup to Files (keeps the last 7 versions)</span></div>
       <div style="margin-top:16px">
         <button class="ghost" onclick="watchAdFree()"><svg class="ic"><use href="#i-zap"/></svg>Watch an ad — hide banner ads for 12h</button>
         <p id="ap-rewardStatus" style="color:var(--muted); font-size:12px; margin-top:8px"></p>
@@ -781,6 +820,21 @@ details.fold .fold-body{padding:12px 14px 14px; border-top:1px solid var(--borde
     <div class="wfoot">
       <button class="ghost" id="wizBackBtn" onclick="wizBack()"><svg class="ic"><use href="#i-back"/></svg>Back</button>
       <button class="primary" id="wizNextBtn" onclick="wizNext()"><span id="wizNextLbl">Continue</span><svg class="ic"><use href="#i-next"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ONBOARDING ============ -->
+<div id="obModal" class="modal" style="display:none">
+  <div class="wcard">
+    <div class="whead">
+      <b><svg class="ic"><use href="#i-book"/></svg>Welcome</b>
+      <button class="iconbtn" onclick="obSkip()" title="Skip onboarding"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="wbody" id="obBody"></div>
+    <div class="wfoot">
+      <button class="ghost" id="obSkipBtn" onclick="obSkip()">Skip</button>
+      <button class="primary" id="obNextBtn" onclick="obNext()"><span>Continue</span><svg class="ic"><use href="#i-next"/></svg></button>
     </div>
   </div>
 </div>
@@ -918,7 +972,12 @@ function byAcct(list, sel){
   return list.filter(t=>t.acct===sel);
 }
 function clamp(v,a,b){ return Math.min(b,Math.max(a,v)); }
-function toast(msg){ $('toastTxt').textContent=msg; const t=$('toast'); t.style.opacity=1; setTimeout(()=>t.style.opacity=0,2200); }
+function toast(msg){
+  $('toastTxt').textContent=msg;
+  const t=$('toast');
+  t.classList.add('show');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200);
+}
 
 function calc(sym, qty, slPts, resultPts){
   const pv=pointVal(sym); if(!pv||!qty||isNaN(resultPts)) return null;
@@ -1203,7 +1262,8 @@ function deleteTrade(id){
 /* ================= TABS ================= */
 function switchTab(name){
   document.querySelectorAll('main > section').forEach(s=>s.style.display='none');
-  $('tab-'+name).style.display='';
+  const sec=$('tab-'+name); sec.style.display='';
+  sec.classList.remove('anim'); void sec.offsetWidth; sec.classList.add('anim');
   document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
   if(name==='dashboard') renderDashboard();
   if(name==='calendar') renderCalendar();
@@ -1428,6 +1488,7 @@ function renderDashboard(){
   barChart('bySetup', groupBy(list, t=>t.setup));
   barChart('bySym', groupBy(list, t=>t.sym));
   barChart('byDay', groupByWeekday(list));
+  renderAnalytics(list);
 }
 
 function acctOptions(sel, current, allLabel){
@@ -1484,6 +1545,39 @@ function barChart(id, data){
       <div class="track"><div class="bar" style="width:${w}%; background:${d.value>=0?'linear-gradient(90deg,var(--green),var(--cyan))':'linear-gradient(90deg,var(--red),var(--gold))'}"></div></div>
       <div class="val ${cls(d.value)}">${fmt$(d.value)}</div></div>`;
   }).join('');
+}
+
+/* counts-only horizontal bars (e.g. R-distribution histogram) */
+function countChart(id, data){
+  const el=$(id); if(!el) return;
+  if(!data.length){ el.innerHTML='<div class="empty">No data yet.</div>'; return; }
+  const max=Math.max(...data.map(d=>d.value))||1;
+  el.innerHTML = data.map(d=>{
+    const w=(d.value/max*97).toFixed(1);
+    return `<div class="row">
+      <div class="lbl">${esc(d.label)}</div>
+      <div class="track"><div class="bar" style="width:${w}%; background:linear-gradient(90deg,var(--accent),var(--accent2))"></div></div>
+      <div class="val">${d.value}</div></div>`;
+  }).join('');
+}
+function rHistData(list){
+  const bounds=[-2,-1,1,2,3];
+  const labels=['<-2R','-2 to -1','-1 to 0','0 to 1','1 to 2','2 to 3','3R+'];
+  const buckets=labels.map(l=>({label:l, value:0}));
+  list.forEach(t=>{
+    if(t.r==null) return;
+    let idx=buckets.length-1;
+    for(let i=0;i<bounds.length;i++){ if(t.r < bounds[i]){ idx=i; break; } }
+    buckets[idx].value++;
+  });
+  return buckets;
+}
+function renderAnalytics(list){
+  if(!list.length){ ['byDir','byGrade','rHist','byHour'].forEach(id=>{ const el=$(id); if(el) el.innerHTML='<div class="empty">No data yet.</div>'; }); return; }
+  barChart('byDir', groupBy(list, t=>t.dir==='L'?'Long':'Short'));
+  barChart('byGrade', groupBy(list, t=>t.grade||'—'));
+  countChart('rHist', rHistData(list));
+  barChart('byHour', groupBy(list, t=>t.time?t.time.slice(0,2)+':00':'—'));
 }
 
 function avg(a){ return a.length?a.reduce((x,y)=>x+y,0)/a.length:0; }
@@ -1736,6 +1830,25 @@ async function imgWipeAll(){
 }
 function imgRefCount(id){ return trades.filter(t=>(t.imgs||[]).includes(id)).length; }
 
+/* delete stored screenshots no trade references (orphans from restores/imports) */
+async function sweepOrphanImgs(){
+  const refs=new Set(); trades.forEach(t=>(t.imgs||[]).forEach(id=>refs.add(id)));
+  const FS=P('Filesystem');
+  let n=0;
+  try{
+    if(FS){
+      const r=await FS.readdir({path:IMGDIR, directory:'DATA'});
+      const files=(r&&r.files||[]).filter(f=>/^img_.*\.jpg$/.test(f.name));
+      for(const f of files){ if(!refs.has(f.name)){ try{ await FS.deleteFile({path:IMGDIR+'/'+f.name, directory:'DATA'}); n++; }catch(e){} } }
+    } else {
+      const db=await idb(); const tx=db.transaction('imgs'); const os=tx.objectStore('imgs');
+      const keys=await new Promise((res,rej)=>{ const r2=os.getAllKeys(); r2.onsuccess=()=>res(r2.result); r2.onerror=()=>rej(r2.error); });
+      for(const k of keys){ if(!refs.has(k)){ try{ await idbDel(k); n++; }catch(e){} } }
+    }
+  }catch(e){ console.warn('sweepOrphanImgs:',e); }
+  if(n) console.log('swept orphan screenshots:', n);
+}
+
 function downscaleImg(file){ return new Promise((res,rej)=>{
   const img=new Image();
   img.onload=()=>{
@@ -1967,7 +2080,7 @@ function doImport(){
   }
   closeImport();
   if(!n){ toast('Nothing to import'); return; }
-  persist(); renderAll();
+  persist(); renderAll(); sweepOrphanImgs();
   toast('Imported '+n+' trade'+(n>1?'s':''));
 }
 function closeImport(){ imp=null; $('impModal').style.display='none'; }
@@ -2003,7 +2116,7 @@ function importJSON(ev){
       if(!Array.isArray(settings.lastAccts)) settings.lastAccts=[];
       migrateAccounts();
       trades=d.trades.map(migrateTrade);
-      persist(); init(); toast('Backup restored');
+      persist(); init(); sweepOrphanImgs(); toast('Backup restored');
     }catch(e){ alert('Not a valid backup file.'); } };
   r.readAsText(f); ev.target.value='';
 }
@@ -2026,6 +2139,7 @@ function init(){
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     const sm=$('shotModal'); if(sm&&sm.style.display!=='none'&&sm.style.display!==''){ sm.style.display='none'; return; }
+    const om=$('obModal'); if(om&&om.style.display!=='none'&&om.style.display!==''){ obSkip(); return; }
     if(imp){ closeImport(); return; }
   }
   if(!wiz) return;
@@ -2293,7 +2407,7 @@ async function sharePnlCard(){
 
 /* ================= NATIVE FEATURES (Capacitor) ================= */
 const LS_APP='ftj_app';
-let appPrefs = load(LS_APP, {notif:false, notifTime:'17:00', bio:false});
+let appPrefs = load(LS_APP, {notif:false, notifTime:'17:00', bio:false, autoBk:true, onboard:false});
 const natPlugins={};
 function P(n){
   const c=window.Capacitor;
@@ -2350,6 +2464,44 @@ async function exportJSONToDevice(){
   settings.lastBackup=Date.now(); persist();
   await saveToDevice('trading-journal-backup-'+todayStr()+'.json', JSON.stringify({version:3,settings,trades},null,1));
   $('backupBanner').style.display='none';
+}
+
+/* --- auto + versioned backups: silent, timestamped, capped --- */
+const AUTO_KEEP=7, AUTO_INTERVAL=24*3600*1000;
+function backupJSON(){ return JSON.stringify({version:3,settings,trades},null,1); }
+async function writeBackupNative(name,text){
+  const FS=P('Filesystem'); if(!FS) return false;
+  try{
+    try{
+      const perm=await FS.checkPermissions();
+      if(perm && perm.publicStorage && perm.publicStorage!=='granted') await FS.requestPermissions();
+    }catch(e){}
+    await FS.writeFile({path:BACKUP_DIR+'/'+name, data:text, directory:'DOCUMENTS', encoding:'utf8', recursive:true});
+    return true;
+  }catch(e){ console.warn('writeBackupNative:',e); return false; }
+}
+async function cleanupOldBackups(){
+  const FS=P('Filesystem'); if(!FS) return;
+  try{
+    const r=await FS.readdir({path:BACKUP_DIR, directory:'DOCUMENTS'});
+    const autos=(r&&r.files||[]).filter(f=>/^auto-.*\.json$/.test(f.name)).sort((a,b)=>a.name<b.name?-1:1);
+    if(autos.length>AUTO_KEEP){
+      for(let i=0;i<autos.length-AUTO_KEEP;i++){ try{ await FS.deleteFile({path:BACKUP_DIR+'/'+autos[i].name, directory:'DOCUMENTS'}); }catch(e){} }
+    }
+  }catch(e){ console.warn('cleanupOldBackups:',e); }
+}
+async function autoBackup(force){
+  const FS=P('Filesystem'); if(!FS) return;
+  if(!force && (appPrefs.autoBk===false || Date.now()-(appPrefs.autoBkAt||0) < AUTO_INTERVAL)) return;
+  const name='auto-trading-journal-'+todayStr()+'-'+nowTime().replace(':','')+'.json';
+  const ok=await writeBackupNative(name, backupJSON());
+  if(ok){ appPrefs.autoBkAt=Date.now(); saveAppPrefs(); settings.lastBackup=Date.now(); persist(); await cleanupOldBackups(); }
+}
+function maybeAutoBackup(force){ autoBackup(force); }
+function uiAutoBkChanged(){
+  appPrefs.autoBk=$('ap-autobk').checked; saveAppPrefs();
+  if(appPrefs.autoBk){ maybeAutoBackup(true); toast('Auto-backup on — next version on change'); }
+  else toast('Auto-backup off');
 }
 
 /* --- real file export: write to app cache, hand to Android share sheet --- */
@@ -2433,6 +2585,7 @@ async function nativeInit(){
   $('ap-notif').checked=!!appPrefs.notif;
   $('ap-time').value=appPrefs.notifTime||'17:00';
   $('ap-bio').checked=!!appPrefs.bio;
+  $('ap-autobk').checked=appPrefs.autoBk!==false;
   updateRewardUI();
   const B=bioApi();
   if(B){
@@ -2443,18 +2596,96 @@ async function nativeInit(){
   if(window.capacitorApp && window.capacitorApp.App){
     const A=window.capacitorApp.App;
     A.addListener('appUrlOpen', d=>handleAppUrl(d&&d.url));
+    A.addListener('appStateChange', s=>{ if(!(s&&s.isActive)) maybeAutoBackup(); });
     try{ const l=await A.getLaunchUrl(); if(l&&l.url) handleAppUrl(l.url); }catch(e){}
   }
 }
 
+/* --- first-run onboarding --- */
+let obStep=1;
+function obEligible(){ return !appPrefs.onboard && trades.length===0 && settings.accounts.length===0; }
+function obShow(){
+  obStep=1; $('obModal').style.display='flex'; obRender();
+}
+function obRender(){
+  const body=$('obBody');
+  if(obStep===1){
+    $('obSkipBtn').style.display='';
+    body.innerHTML=`<div class="ob-hero">
+      <div class="logo"><svg viewBox="0 0 24 24"><path d="M7 4v3M7 17v3M4.5 7h5v10h-5zM17 2v4M17 18v4M14.5 6h5v12h-5z"/></svg></div>
+      <h3>Welcome to The Liquidity Book</h3>
+      <p>A trading journal built for prop-firm evaluations. Every trade, every account, every rule — tracked automatically so you can focus on the market.</p>
+      <div class="ob-feats">
+        <div class="ob-feat">${ic('i-wallet')}Prop-firm rules: drawdown, targets, consistency & payouts</div>
+        <div class="ob-feat">${ic('i-scale')}Points-based P&L across multiple accounts at once</div>
+        <div class="ob-feat">${ic('i-db')}Stored on your device — with automatic backups</div>
+        <div class="ob-feat">${ic('i-img')}Screenshots, daily recaps & analytics</div>
+      </div></div>`;
+    $('obNextBtn').innerHTML='<span>Get started</span>'+ic('i-next');
+  } else if(obStep===2){
+    $('obSkipBtn').style.display='none';
+    body.innerHTML=`<h4>${ic('i-wallet')} Add your first prop account</h4>
+      <div class="sub" style="margin:-6px 0 14px">Sets up your drawdown & target tracking. You can add more or change these in Settings any time.</div>
+      <div class="grid">
+        <div><label>Name</label><input type="text" id="ob-name" placeholder="e.g. Apex 50K #1"></div>
+        <div><label>Account size $</label><input type="number" id="ob-size" step="any" placeholder="50000"></div>
+        <div><label>Profit target $</label><input type="number" id="ob-target" step="any" placeholder="3000"></div>
+        <div><label>Max drawdown $</label><input type="number" id="ob-dd" step="any" placeholder="2500"></div>
+        <div><label>Drawdown type</label><select id="ob-ddtype">
+          <option value="intraday">Trailing — trade-to-trade</option>
+          <option value="eod">Trailing — end of day</option>
+          <option value="static">Static</option></select></div>
+        <div><label>Daily loss $ (0 = none)</label><input type="number" id="ob-dl" step="any" value="0"></div>
+      </div>`;
+    $('obNextBtn').innerHTML='<span>Add & continue</span>'+ic('i-next');
+  } else {
+    $('obSkipBtn').style.display='';
+    body.innerHTML=`<div class="ob-hero">
+      <div class="logo"><svg viewBox="0 0 24 24"><path d="M7 4v3M7 17v3M4.5 7h5v10h-5zM17 2v4M17 18v4M14.5 6h5v12h-5z"/></svg></div>
+      <h3>You're all set</h3>
+      <p>12 common futures instruments are pre-loaded (MES, MNQ, ES, NQ, CL, GC…). Edit them any time in <b>Settings → Instruments</b>.</p>
+      <p style="margin-top:10px">Log your first trade from the <b>Journal</b> tab — or restore an existing backup from <b>Settings → Data</b>.</p></div>`;
+    $('obNextBtn').innerHTML='<span>Done</span>'+ic('i-check');
+  }
+}
+function obAddAccountFromForm(){
+  const name=$('ob-name').value.trim(), size=parseFloat($('ob-size').value),
+        target=parseFloat($('ob-target').value)||0, dd=parseFloat($('ob-dd').value);
+  if(name&&size>0&&dd>0){
+    settings.accounts.push({id:'a'+Date.now(), name, size, target, maxDD:dd,
+      ddType:$('ob-ddtype').value, cap:false,
+      dailyLoss:parseFloat($('ob-dl').value)||0, minDays:0, consistPct:0, adj:[], phase:'Evaluation'});
+    persist();
+  }
+}
+function obNext(){
+  if(obStep===1){ obStep=2; obRender(); return; }
+  if(obStep===2){ obAddAccountFromForm(); obStep=3; obRender(); return; }
+  obDone();
+}
+function obSkip(){ obDone(); }
+function obDone(){
+  appPrefs.onboard=true; saveAppPrefs();
+  $('obModal').style.display='none';
+  renderSettings();
+  toast('Happy trading');
+}
+function maybeOnboard(){
+  if(obEligible()) obShow();
+}
+
 function adNativeBoot(){
-  if(!localStorage.getItem(LS_ADNOTICE)) $('adNotice').style.display='flex';
+  const showNotice=!localStorage.getItem(LS_ADNOTICE);
+  if(showNotice) $('adNotice').style.display='flex';
   $('adNoticeOk').addEventListener('click',()=>{
     localStorage.setItem(LS_ADNOTICE,'1'); natMirror();
     $('adNotice').style.display='none';
+    maybeOnboard();
   });
   nativeInit();
   initAds();
+  setTimeout(maybeAutoBackup, 1500);
+  if(!showNotice) maybeOnboard();
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', adNativeBoot);
 else adNativeBoot();
