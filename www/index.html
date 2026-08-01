@@ -74,6 +74,36 @@ body::after{content:''; position:fixed; inset:0; z-index:-1; pointer-events:none
   --cyan:#fda4af; --cyan-rgb:253 164 175;
   --purple:#f472b6; --purple-rgb:244 114 182;
 }
+:root[data-theme="dark-indigo"]{
+  --accent:#818cf8; --accent-rgb:129 140 248;
+  --accent2:#6366f1; --accent2-rgb:99 102 241;
+  --cyan:#a5b4fc; --cyan-rgb:165 180 252;
+  --purple:#c7d2fe; --purple-rgb:199 210 254;
+}
+:root[data-theme="dark-ice"]{
+  --accent:#22d3ee; --accent-rgb:34 211 238;
+  --accent2:#67e8f9; --accent2-rgb:103 232 249;
+  --cyan:#a5f3fc; --cyan-rgb:165 243 252;
+  --purple:#67e8f9; --purple-rgb:103 232 249;
+}
+:root[data-theme="dark-amber"]{
+  --accent:#fbbf24; --accent-rgb:251 191 36;
+  --accent2:#f59e0b; --accent2-rgb:245 158 11;
+  --cyan:#fcd34d; --cyan-rgb:252 211 77;
+  --purple:#fde68a; --purple-rgb:253 230 138;
+}
+:root[data-theme="dark-lime"]{
+  --accent:#a3e635; --accent-rgb:163 230 53;
+  --accent2:#84cc16; --accent2-rgb:132 204 22;
+  --cyan:#bef264; --cyan-rgb:190 242 100;
+  --purple:#d9f99d; --purple-rgb:217 249 157;
+}
+:root[data-theme="dark-graphite"]{
+  --accent:#94a3b8; --accent-rgb:148 163 184;
+  --accent2:#64748b; --accent2-rgb:100 116 139;
+  --cyan:#cbd5e1; --cyan-rgb:203 213 225;
+  --purple:#e2e8f0; --purple-rgb:226 232 240;
+}
 
 /* ---------- LIGHT MODE (base tokens) ---------- */
 :root[data-theme^="light"]{
@@ -128,6 +158,36 @@ body::after{content:''; position:fixed; inset:0; z-index:-1; pointer-events:none
   --accent2:#be123c; --accent2-rgb:190 18 60;
   --cyan:#f43f5e; --cyan-rgb:244 63 94;
   --purple:#db2777; --purple-rgb:219 39 119;
+}
+:root[data-theme="light-indigo"]{
+  --accent:#4f46e5; --accent-rgb:79 70 229;
+  --accent2:#4338ca; --accent2-rgb:67 56 202;
+  --cyan:#6366f1; --cyan-rgb:99 102 241;
+  --purple:#4338ca; --purple-rgb:67 56 202;
+}
+:root[data-theme="light-ice"]{
+  --accent:#0891b2; --accent-rgb:8 145 178;
+  --accent2:#0e7490; --accent2-rgb:14 116 144;
+  --cyan:#0e7490; --cyan-rgb:14 116 144;
+  --purple:#155e75; --purple-rgb:21 94 117;
+}
+:root[data-theme="light-amber"]{
+  --accent:#b45309; --accent-rgb:180 83 9;
+  --accent2:#92400e; --accent2-rgb:146 64 14;
+  --cyan:#d97706; --cyan-rgb:217 119 6;
+  --purple:#92400e; --purple-rgb:146 64 14;
+}
+:root[data-theme="light-lime"]{
+  --accent:#65a30d; --accent-rgb:101 163 13;
+  --accent2:#4d7c0f; --accent2-rgb:77 124 15;
+  --cyan:#84cc16; --cyan-rgb:132 204 22;
+  --purple:#4d7c0f; --purple-rgb:77 124 15;
+}
+:root[data-theme="light-graphite"]{
+  --accent:#475569; --accent-rgb:71 85 105;
+  --accent2:#334155; --accent2-rgb:51 65 85;
+  --cyan:#64748b; --cyan-rgb:100 116 139;
+  --purple:#475569; --purple-rgb:71 85 105;
 }
 *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
 html{-webkit-text-size-adjust:100%; background:var(--bg);}
@@ -786,11 +846,16 @@ function persist(){ localStorage.setItem(LS_TRADES, JSON.stringify(trades)); loc
 const THEME_KEY='ftj_theme';
 const DEFAULT_THEME={mode:'dark', scheme:'ocean'};
 const THEMES=[
-  {id:'ocean',   name:'Ocean',   a:'#60a5fa', b:'#38bdf8', aL:'#2563eb', bL:'#0ea5e9'},
-  {id:'violet',  name:'Violet',  a:'#8b5cf6', b:'#a78bfa', aL:'#7c3aed', bL:'#8b5cf6'},
-  {id:'emerald', name:'Emerald', a:'#34d399', b:'#2dd4bf', aL:'#059669', bL:'#0d9488'},
-  {id:'sunset',  name:'Sunset',  a:'#fb923c', b:'#f97316', aL:'#ea580c', bL:'#d97706'},
-  {id:'rose',    name:'Rose',    a:'#fb7185', b:'#f43f5e', aL:'#e11d48', bL:'#be123c'}
+  {id:'ocean',    name:'Ocean',    a:'#60a5fa', b:'#38bdf8', aL:'#2563eb', bL:'#0ea5e9'},
+  {id:'indigo',   name:'Indigo',   a:'#818cf8', b:'#6366f1', aL:'#4f46e5', bL:'#4338ca'},
+  {id:'violet',   name:'Violet',   a:'#8b5cf6', b:'#a78bfa', aL:'#7c3aed', bL:'#8b5cf6'},
+  {id:'ice',      name:'Ice',      a:'#22d3ee', b:'#67e8f9', aL:'#0891b2', bL:'#0e7490'},
+  {id:'emerald',  name:'Emerald',  a:'#34d399', b:'#2dd4bf', aL:'#059669', bL:'#0d9488'},
+  {id:'lime',     name:'Lime',     a:'#a3e635', b:'#84cc16', aL:'#65a30d', bL:'#4d7c0f'},
+  {id:'amber',    name:'Amber',    a:'#fbbf24', b:'#f59e0b', aL:'#b45309', bL:'#92400e'},
+  {id:'sunset',   name:'Sunset',   a:'#fb923c', b:'#f97316', aL:'#ea580c', bL:'#d97706'},
+  {id:'rose',     name:'Rose',     a:'#fb7185', b:'#f43f5e', aL:'#e11d48', bL:'#be123c'},
+  {id:'graphite', name:'Graphite', a:'#94a3b8', b:'#64748b', aL:'#475569', bL:'#334155'}
 ];
 let theme=load(THEME_KEY, DEFAULT_THEME);
 if(!THEMES.some(s=>s.id===theme.scheme)) theme={mode:'dark', scheme:'ocean'};
