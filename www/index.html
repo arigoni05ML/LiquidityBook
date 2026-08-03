@@ -796,6 +796,7 @@ main>section.anim{animation:secIn .32s cubic-bezier(.2,.7,.3,1);}
         <button class="ghost" onclick="exportJSON()"><svg class="ic"><use href="#i-down"/></svg>Backup — share</button>
         <button class="ghost" onclick="document.getElementById('importFile').click()"><svg class="ic"><use href="#i-upld"/></svg>Restore backup</button>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
+        <button class="ghost" onclick="restoreFromDevice()"><svg class="ic"><use href="#i-db"/></svg>Restore from Files</button>
         <button class="ghost" onclick="exportCSV()"><svg class="ic"><use href="#i-down"/></svg>Export CSV</button>
         <button class="ghost" onclick="document.getElementById('impFile').click()"><svg class="ic"><use href="#i-upld"/></svg>Import CSV</button>
         <input type="file" id="impFile" accept=".csv,text/csv" style="display:none" onchange="openImportFile(event)">
@@ -889,6 +890,7 @@ function migrateAccounts(){
   settings.accounts.forEach(a=>{
     if(!Array.isArray(a.adj)) a.adj=[];
     a.consistPct = +a.consistPct||0;
+    a.maxDD = (isFinite(+a.maxDD) && +a.maxDD>0) ? +a.maxDD : 0; /* 0/negative/absent => drawdown tracking off */
   });
 }
 let calY, calM;
@@ -1341,11 +1343,12 @@ function acctStatus(a){
     prevClose=bal;
   }
   if(prevDate!==null) hwmEOD=Math.max(hwmEOD, prevClose);
+  const maxDD = +a.maxDD||0;             /* 0/undefined => drawdown tracking is off, never "blown" */
   let ddLevel;
-  if(a.ddType==='static'){ ddLevel = a.size - a.maxDD; }
+  if(a.ddType==='static'){ ddLevel = a.size - maxDD; }
   else {
     const h = a.ddType==='eod' ? hwmEOD : hwmTrade;
-    ddLevel = h - a.maxDD;
+    ddLevel = h - maxDD;
     if(a.cap) ddLevel = Math.min(ddLevel, a.size - paidOut);
   }
   const cycle = bal - a.size;            /* progress toward target (net of payouts) */
@@ -1353,7 +1356,7 @@ function acctStatus(a){
   const buffer = bal - ddLevel;
   const todayNet = dayNet[todayStr()]||0;
   const days = new Set(list.map(t=>t.date)).size;
-  const blown = buffer<=0 && (list.length>0||adjs.length>0);
+  const blown = maxDD>0 && buffer<=0 && (list.length>0||adjs.length>0);
   const dailyBreached = a.dailyLoss>0 && todayNet <= -a.dailyLoss;
   const passed = a.target>0 && cycle>=a.target;
   /* consistency rule: best single day must be <= consistPct% of total profit */
@@ -1748,7 +1751,10 @@ function addAccount(){
 }
 function updAcct(id,k,v){
   const a=acct(id); if(!a) return;
-  if(['size','target','maxDD','dailyLoss','consistPct'].includes(k)){ v=parseFloat(v); if(isNaN(v)||v<0){renderSettings();return;} }
+  if(['size','target','maxDD','dailyLoss','consistPct'].includes(k)){
+    v=parseFloat(v);
+    if(isNaN(v)||v<0){renderSettings();return;}
+  }
   if(k==='minDays'){ v=parseInt(v)||0; }
   a[k]=v; persist(); renderSettings();
 }
@@ -2104,20 +2110,31 @@ function exportJSON(){
   download('trading-journal-backup-'+todayStr()+'.json', JSON.stringify({version:3,settings,trades},null,1), 'application/json');
   $('backupBanner').style.display='none';
 }
+function sanitizeSettings(s){
+  s = Object.assign(structuredClone(DEFAULT_SETTINGS), (s && typeof s==='object') ? s : {});
+  if(!Array.isArray(s.accounts)) s.accounts=[];
+  if(!Array.isArray(s.lastAccts)) s.lastAccts=[];
+  if(!Array.isArray(s.setups)) s.setups=[];
+  if(!Array.isArray(s.instruments) || !s.instruments.length) s.instruments=structuredClone(DEFAULT_SETTINGS.instruments);
+  else s.instruments = s.instruments.filter(i=>i && i.sym && isFinite(+i.ts) && +i.ts>0 && isFinite(+i.tv) && +i.tv>0);
+  if(!Array.isArray(s.instruments) || !s.instruments.length) s.instruments=structuredClone(DEFAULT_SETTINGS.instruments);
+  if(!isFinite(+s.qty) || +s.qty<=0) s.qty=DEFAULT_SETTINGS.qty;
+  if(!isFinite(+s.commPerSide) || +s.commPerSide<0) s.commPerSide=DEFAULT_SETTINGS.commPerSide;
+  return s;
+}
+function applyRestore(d){
+  if(!d || typeof d!=='object' || !Array.isArray(d.trades)) throw 0;
+  if(!confirm('Restore '+d.trades.length+' trades? This replaces current data.')) return false;
+  settings = sanitizeSettings(d.settings);
+  migrateAccounts();
+  trades=d.trades.map(migrateTrade);
+  persist(); init(); sweepOrphanImgs(); toast('Backup restored');
+  return true;
+}
 function importJSON(ev){
   const f=ev.target.files[0]; if(!f)return;
   const r=new FileReader();
-  r.onload=()=>{ try{
-      const d=JSON.parse(r.result);
-      if(!Array.isArray(d.trades)) throw 0;
-      if(!confirm('Restore '+d.trades.length+' trades? This replaces current data.')) return;
-      if(d.settings) settings=Object.assign(structuredClone(DEFAULT_SETTINGS), d.settings);
-      if(!Array.isArray(settings.accounts)) settings.accounts=[];
-      if(!Array.isArray(settings.lastAccts)) settings.lastAccts=[];
-      migrateAccounts();
-      trades=d.trades.map(migrateTrade);
-      persist(); init(); sweepOrphanImgs(); toast('Backup restored');
-    }catch(e){ alert('Not a valid backup file.'); } };
+  r.onload=()=>{ try{ applyRestore(JSON.parse(r.result)); }catch(e){ alert('Not a valid backup file.'); } };
   r.readAsText(f); ev.target.value='';
 }
 function wipeAll(){
@@ -2147,7 +2164,10 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter' && e.target.tagName!=='TEXTAREA'){ e.preventDefault(); wizNext(); }
 });
 init();
-persist(); // save any migrated trades
+/* NOTE: no persist() here — writing defaults now would defeat the native
+   Preferences restore in natRestore() (it checks if LS_TRADES is set and would
+   skip recovery after WebView data loss). The initial persist happens in
+   adNativeBoot() after natRestore() has had its chance to restore. */
 
 /* Lock to portrait where the platform allows it (Android PWA/fullscreen).
    iOS Safari doesn't support this - the #rotate-warning overlay covers it there.
@@ -2160,7 +2180,7 @@ try{ if(Math.min(screen.width,screen.height)<600 && screen.orientation && screen
       - adaptive banner anchored at the bottom of every page
       - one interstitial per app launch, 120s after open (15s while
         ADS.testing; skipped while the rewarded ad-free day is active)
-      - rewarded ad in Settings: watch a video -> banner off until midnight
+      - rewarded ad in Settings: watch a video -> banner off for 12 hours
         (interstitials also skipped while ad-free)
    2. Plain browser / PWA: no ads. Add ?adpreview to the URL to preview
       the banner space and layout shift.
@@ -2224,7 +2244,7 @@ async function initAds(){
   }catch(e){ console.warn('AdMob unavailable:', e); }
 }
 
-/* interstitial trigger: every 4th-5th trade save, capped */
+/* interstitial trigger: once per app launch, this long after open (see INTER_DELAY_MS) */
 function scheduleLaunchInterstitial(){
   setTimeout(tryLaunchInterstitial, ADS.testing ? 15000 : INTER_DELAY_MS);
 }
@@ -2247,7 +2267,7 @@ async function tryLaunchInterstitial(){
   }
 }
 
-/* rewarded ad: banner-free until midnight */
+/* rewarded ad: banner-free for 12 hours (once per calendar day) */
 async function watchAdFree(){
   const AdMob=P('AdMob'); if(!AdMob){ toast('Only available in the app'); return; }
   if(adFreeActive()){ toast('Ad-free is already active'); return; }
@@ -2466,6 +2486,34 @@ async function exportJSONToDevice(){
   $('backupBanner').style.display='none';
 }
 
+/* --- restore a backup written to Documents/The Liquidity Book --- */
+async function listDeviceBackups(){
+  const FS=P('Filesystem'); if(!FS) return null;
+  try{
+    const r=await FS.readdir({path:BACKUP_DIR, directory:'DOCUMENTS'});
+    return (r&&r.files||[]).filter(f=>/\.json$/i.test(f.name)).sort((a,b)=> b.name<a.name ? -1 : 1);
+  }catch(e){ return null; }
+}
+async function restoreFromDevice(){
+  const FS=P('Filesystem'); if(!FS){ toast('Only available in the app'); return; }
+  const files=await listDeviceBackups();
+  if(!files || !files.length){ toast('No backups found in Documents/'+BACKUP_DIR); return; }
+  $('bkList').innerHTML = files.map(f=>
+    `<button class="bk-row" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;text-align:left;cursor:pointer" onclick="restoreBackupFile(${esc(JSON.stringify(f.name))})"><span>${esc(f.name)}</span><b style="color:var(--accent)">Restore</b></button>`
+  ).join('') || '<div style="color:var(--muted);padding:12px">No backups found.</div>';
+  $('bkModal').style.display='flex';
+}
+async function restoreBackupFile(name){
+  const FS=P('Filesystem'); if(!FS) return;
+  try{
+    const r=await FS.readFile({path:BACKUP_DIR+'/'+name, directory:'DOCUMENTS', encoding:'utf8'});
+    if(r==null||r.data==null) throw 0;
+    const ok=applyRestore(JSON.parse(r.data));
+    if(ok) $('bkModal').style.display='none'; /* keep it open if the user cancels the confirm */
+  }catch(e){ alert('Not a valid backup file.'); }
+}
+function closeBkModal(){ $('bkModal').style.display='none'; }
+
 /* --- auto + versioned backups: silent, timestamped, capped --- */
 const AUTO_KEEP=7, AUTO_INTERVAL=24*3600*1000;
 function backupJSON(){ return JSON.stringify({version:3,settings,trades},null,1); }
@@ -2592,7 +2640,7 @@ async function nativeInit(){
     try{ const r=await B.checkBiometry(); if(!(r&&(r.isAvailable||r.deviceIsSecure))){ $('ap-bio').disabled=true; if(appPrefs.bio){appPrefs.bio=false; saveAppPrefs();} } }catch(e){}
   } else $('ap-bio').disabled=true;
   if(appPrefs.bio && bioApi()){ $('bioLock').style.display='flex'; bioUnlock(); }
-  natRestore();
+  await natRestore();
   if(window.capacitorApp && window.capacitorApp.App){
     const A=window.capacitorApp.App;
     A.addListener('appUrlOpen', d=>handleAppUrl(d&&d.url));
@@ -2682,9 +2730,12 @@ function adNativeBoot(){
     $('adNotice').style.display='none';
     maybeOnboard();
   });
-  nativeInit();
-  initAds();
-  setTimeout(maybeAutoBackup, 1500);
+  nativeInit().then(()=>{
+    /* persist migrated data AFTER the native restore has run — see the NOTE above init() */
+    persist();
+    initAds();
+    setTimeout(maybeAutoBackup, 1500);
+  });
   if(!showNotice) maybeOnboard();
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', adNativeBoot);
@@ -2716,6 +2767,23 @@ else adNativeBoot();
     <button class="ghost" onclick="shotNav(1)">Next &#8250;</button>
   </div>
   <button class="ghost" onclick="document.getElementById('shotModal').style.display='none'">Close</button>
+</div>
+
+<!-- restore from device backups -->
+<div id="bkModal" class="modal" style="display:none">
+  <div class="wcard">
+    <div class="whead">
+      <b><svg class="ic"><use href="#i-db"/></svg>Restore from Files</b>
+      <button class="iconbtn" onclick="closeBkModal()" title="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="wbody" style="max-height:60vh; overflow:auto">
+      <p style="color:var(--muted); font-size:13px; margin-bottom:10px">Select a backup from Documents/The Liquidity Book. Restoring replaces all current data.</p>
+      <div id="bkList" style="display:flex; flex-direction:column; gap:8px"></div>
+    </div>
+    <div class="wfoot">
+      <button class="ghost" onclick="closeBkModal()">Close</button>
+    </div>
+  </div>
 </div>
 
 <!-- CSV import -->
