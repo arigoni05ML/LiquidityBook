@@ -2,7 +2,7 @@
 
 Capacitor 8 project wrapping `www/index.html` (the journal app).
 Already configured: portrait lock, dark status/nav bars, dark splash, app icons,
-AdMob plugin (@capacitor-community/admob) with Google TEST ad IDs.
+AdMob plugin (@capacitor-community/admob) with live ad units (banner, interstitial, rewarded).
 
 ## Build & run (first time)
 
@@ -19,19 +19,22 @@ Edit `www/index.html`, then run `npx cap sync android` and rebuild.
 
 ## Before releasing to Google Play
 
-1. AdMob (apps.admob.com): create an app + a banner and an interstitial ad unit.
-   - Put your real **App ID** in `android/app/src/main/AndroidManifest.xml`
-     (replace the TEST id at the marked TODO).
-   - Put your real **ad unit IDs** in `www/index.html` (ADS config, marked TODO)
-     and set `testing: false`. Run `npx cap sync android` after.
-2. Play Console (play.google.com/console, $25 one-time): create the app,
-   fill in the data-safety + ads declarations (app contains ads: YES).
-3. In Android Studio: Build > Generate Signed App Bundle. Create a keystore and
-   BACK IT UP — losing it means you can never update the app.
-4. Upload the .aab, add store listing (icon in `store-assets/`), screenshots, publish.
+AdMob is already wired with live IDs — the App ID in `android/app/src/main/AndroidManifest.xml`,
+the ad units in `www/index.html` under `ADS` (banner/interstitial/rewarded), and
+`testing: false`. Remaining release steps:
+
+1. Play Console (play.google.com/console, $25 one-time): create the app,
+   fill in the data-safety + ads declarations (app contains ads: YES), and add the
+   privacy policy URL (host `store-assets/privacy-policy.html`).
+2. In Android Studio: Build > Generate Signed App Bundle. Create a keystore and
+   BACK IT UP — losing it means you can never update the app. Bump `versionCode`
+   in `android/app/build.gradle` for each upload.
+3. Upload the .aab, add store listing (icon in `store-assets/`), screenshots, publish.
 
 ## Notes
 
 - App ID: com.arigoni.liquiditybook (permanent once published)
-- Trades stay in the WebView's localStorage on-device. Uninstalling the app erases
-  them — the in-app CSV backup/export is the user's safety net.
+- Journal data stays on-device: Android cloud backup and device transfer are disabled
+  (`allowBackup="false"` + `data_extraction_rules.xml`). Uninstalling the app erases
+  trades — the in-app backup (JSON to Files, share sheet, and auto-backup) is the
+  user's safety net.
