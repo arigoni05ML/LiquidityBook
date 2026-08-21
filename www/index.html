@@ -627,7 +627,10 @@ main>section.anim{animation:secIn .32s cubic-bezier(.2,.7,.3,1);}
 
   <!-- ============ JOURNAL ============ -->
   <section id="tab-journal" class="anim">
-    <button class="bigcta" onclick="openWizard()"><svg class="ic"><use href="#i-plus"/></svg>Log Trade</button>
+    <div style="display:flex; gap:10px; margin-bottom:16px">
+      <button class="bigcta" style="flex:2; margin-bottom:0" onclick="openWizard()"><svg class="ic"><use href="#i-plus"/></svg>Log Trade</button>
+      <button class="ghost" style="flex:1" onclick="openRepeat()"><svg class="ic"><use href="#i-clock"/></svg>Repeat last</button>
+    </div>
     <div class="panel">
       <h2><svg class="ic"><use href="#i-clock"/></svg>Today <small id="todaySummary"></small></h2>
       <div class="scroll" id="todayTrades"></div>
@@ -639,8 +642,10 @@ main>section.anim{animation:secIn .32s cubic-bezier(.2,.7,.3,1);}
     <div class="filters">
       <label style="margin:0">Account</label>
       <select id="d-acct" onchange="renderDashboard()"></select>
+      <button class="ghost" style="margin-left:auto" onclick="openReview()"><svg class="ic"><use href="#i-pulse"/></svg>Review</button>
     </div>
     <div id="acctArea"></div>
+    <div class="panel" id="acctComparePanel" style="display:none"><h2><svg class="ic"><use href="#i-scale"/></svg>Account Comparison</h2><div class="scroll" id="acctCompare"></div></div>
     <div class="cards" id="statCards"></div>
     <div class="panel"><h2><svg class="ic"><use href="#i-trend"/></svg>Equity Curve <small>cumulative net P&L</small></h2><div id="equity"></div></div>
     <div class="split2">
@@ -651,6 +656,10 @@ main>section.anim{animation:secIn .32s cubic-bezier(.2,.7,.3,1);}
       <div class="panel"><h2><svg class="ic"><use href="#i-dash"/></svg>P&L by Instrument</h2><div class="bars" id="bySym"></div></div>
       <div class="panel"><h2><svg class="ic"><use href="#i-cal"/></svg>P&L by Weekday</h2><div class="bars" id="byDay"></div></div>
     </div>
+    <div class="split2">
+      <div class="panel"><h2><svg class="ic"><use href="#i-book"/></svg>P&L by Tag</h2><div class="bars" id="byTag"></div></div>
+      <div class="panel"><h2><svg class="ic"><use href="#i-warn"/></svg>Cost of Mistakes</h2><div class="bars" id="byMistake"></div></div>
+    </div>
     <div class="panel">
       <h2><svg class="ic"><use href="#i-trend"/></svg>Analytics <small>edge by direction, grade, risk & timing</small></h2>
       <div class="split2">
@@ -660,6 +669,10 @@ main>section.anim{animation:secIn .32s cubic-bezier(.2,.7,.3,1);}
       <div class="split2" style="margin-top:12px">
         <div class="subpanel"><h3><svg class="ic"><use href="#i-target"/></svg>R-distribution</h3><div class="bars" id="rHist"></div></div>
         <div class="subpanel"><h3><svg class="ic"><use href="#i-clock"/></svg>By Hour of Day</h3><div class="bars" id="byHour"></div></div>
+      </div>
+      <div class="split2" style="margin-top:12px">
+        <div class="subpanel"><h3><svg class="ic"><use href="#i-clock"/></svg>By Session</h3><div class="bars" id="bySession"></div></div>
+        <div class="subpanel"><h3><svg class="ic"><use href="#i-pulse"/></svg>By Day Type</h3><div class="bars" id="byDayType"></div></div>
       </div>
     </div>
   </section>
@@ -672,6 +685,9 @@ main>section.anim{animation:secIn .32s cubic-bezier(.2,.7,.3,1);}
         <b id="calTitle"></b>
         <select id="c-acct" onchange="renderCalendar()" style="width:auto"></select>
         <button class="ghost" onclick="calMove(1)"><svg class="ic"><use href="#i-next"/></svg></button>
+        <button class="ghost" onclick="shareWeek()">Week</button>
+        <button class="ghost" onclick="shareMonth()">Month</button>
+        <button class="ghost" id="newsDayBtn" onclick="toggleNewsDay()"></button>
       </div>
       <div class="cal-grid" id="calGrid"></div>
       <p style="margin-top:12px; color:var(--muted); font-size:12px">Tap a day to see its trades in History.</p>
@@ -777,6 +793,9 @@ main>section.anim{animation:secIn .32s cubic-bezier(.2,.7,.3,1);}
       <div style="max-width:170px; margin-top:10px"><label>Reminder time</label><input type="time" id="ap-time" onchange="uiNotifChanged()"></div>
       <div class="checkline" style="margin-top:14px"><input type="checkbox" id="ap-bio" onchange="uiBioChanged()"><span>Require fingerprint / face unlock on open</span></div>
       <div class="checkline" style="margin-top:14px"><input type="checkbox" id="ap-autobk" onchange="uiAutoBkChanged()"><span>Auto-backup to Files (keeps the last 7 versions)</span></div>
+      <div class="checkline" style="margin-top:14px"><input type="checkbox" id="ap-alert-dd" onchange="uiAlertChanged()"><span>Alert when drawdown buffer is low (&lt;25%)</span></div>
+      <div class="checkline"><input type="checkbox" id="ap-alert-daily" onchange="uiAlertChanged()"><span>Alert when daily loss limit is near (80%)</span></div>
+      <div class="checkline"><input type="checkbox" id="ap-alert-target" onchange="uiAlertChanged()"><span>Alert when profit target is close (90%)</span></div>
       <div style="margin-top:16px">
         <button class="ghost" onclick="watchAdFree()"><svg class="ic"><use href="#i-zap"/></svg>Watch an ad — hide banner ads for 12h</button>
         <p id="ap-rewardStatus" style="color:var(--muted); font-size:12px; margin-top:8px"></p>
@@ -860,10 +879,11 @@ main>section.anim{animation:secIn .32s cubic-bezier(.2,.7,.3,1);}
 <script>
 'use strict';
 /* ================= STATE ================= */
-const LS_TRADES='ftj_trades', LS_SET='ftj_settings';
+const LS_TRADES='ftj_trades', LS_SET='ftj_settings', LS_REVIEWS='ftj_reviews';
 const DEFAULT_SETTINGS = {
   qty:1, commPerSide:0.85, lastBackup:0, lastAccts:[],
-  accounts:[],
+  accounts:[], tags:[], newsDays:{}, lastTrade:null,
+  mistakes:['Chased entry','Moved stop','Oversized','No plan','Revenge','Traded news','Early exit','Late exit','Hesitated'],
   instruments:[
     {sym:'MES', name:'Micro E-mini S&P 500', ts:0.25, tv:1.25},
     {sym:'MNQ', name:'Micro E-mini Nasdaq-100', ts:0.25, tv:0.50},
@@ -884,13 +904,20 @@ const EMOTIONS=['Calm','Confident','Neutral','FOMO','Revenge','Anxious','Impatie
 let settings = load(LS_SET, DEFAULT_SETTINGS);
 if(!Array.isArray(settings.accounts)) settings.accounts=[];
 if(!Array.isArray(settings.lastAccts)) settings.lastAccts=[];
+if(!Array.isArray(settings.tags)) settings.tags=[];
+if(!Array.isArray(settings.mistakes) || !settings.mistakes.length) settings.mistakes=structuredClone(DEFAULT_SETTINGS.mistakes);
+if(!settings.newsDays || typeof settings.newsDays!=='object' || Array.isArray(settings.newsDays)) settings.newsDays={};
+if(!settings.lastTrade || typeof settings.lastTrade!=='object') settings.lastTrade=null;
 migrateAccounts();
 let trades = load(LS_TRADES, []).map(migrateTrade);
+let reviews = load(LS_REVIEWS, []); if(!Array.isArray(reviews)) reviews=[];
+function persistReviews(){ localStorage.setItem(LS_REVIEWS, JSON.stringify(reviews)); }
 function migrateAccounts(){
   settings.accounts.forEach(a=>{
     if(!Array.isArray(a.adj)) a.adj=[];
     a.consistPct = +a.consistPct||0;
     a.maxDD = (isFinite(+a.maxDD) && +a.maxDD>0) ? +a.maxDD : 0; /* 0/negative/absent => drawdown tracking off */
+    if(!a.tpl || typeof a.tpl!=='object') a.tpl={sym:'',dir:'L',qty:settings.qty||1,setup:(settings.setups&&settings.setups[0])||'Other'};
   });
 }
 let calY, calM;
@@ -943,13 +970,17 @@ applyTheme();
 
 /* migrate v1 trades (entry/exit prices) to points-based */
 function migrateTrade(t){
-  if(t.outcome!==undefined) return t;
+  if(t.outcome!==undefined){
+    if(!Array.isArray(t.tags)) t.tags=[];
+    if(!Array.isArray(t.mistakes)) t.mistakes=[];
+    return t;
+  }
   const resPts = t.ticks!=null && inst(t.sym) ? +(t.ticks*inst(t.sym).ts).toFixed(4) : 0;
   const slPts = (t.stop!=null && t.entry!=null) ? +Math.abs(t.entry-t.stop).toFixed(4) : null;
   return {id:t.id, date:t.date, time:t.time||'', acct:t.acct||'', sym:t.sym, dir:t.dir, qty:t.qty,
     slPts, tpPts:null, outcome:'manual', resultPts:resPts,
     setup:t.setup, grade:t.grade, plan:t.plan, emotion:t.emotion, note:t.note||'',
-    gross:t.gross, comm:t.comm, net:t.net, r:t.r??null};
+    gross:t.gross, comm:t.comm, net:t.net, r:t.r??null, tags:[], mistakes:[]};
 }
 
 /* ================= HELPERS ================= */
@@ -997,13 +1028,15 @@ const STEPS=['Accounts','Market','Trade','Context','Note'];
 let wiz=null;
 
 function blankWiz(){
+  const tpl = settings.lastTrade || (settings.lastAccts.length && acct(settings.lastAccts[0]) ? acct(settings.lastAccts[0]).tpl : null);
   return {step:1, maxStep:1, editingId:null,
     accts:settings.lastAccts.filter(id=>acct(id)),
     date:todayStr(), time:nowTime(),
-    sym:settings.instruments.length?settings.instruments[0].sym:'', dir:'L',
-    qty:settings.qty, sl:null, tp:null, outcome:null, res:null,
-    setup:settings.setups[0]||'Other', grade:'B', plan:true, emotion:'Calm', note:'',
-    imgs:[], pending:{}, origImgs:[]};
+    sym:(tpl && tpl.sym && inst(tpl.sym)) ? tpl.sym : (settings.instruments.length?settings.instruments[0].sym:''),
+    dir:(tpl && tpl.dir)||'L',
+    qty:(tpl && tpl.qty)||settings.qty, sl:null, tp:null, outcome:null, res:null,
+    setup:(tpl && tpl.setup)||settings.setups[0]||'Other', grade:'B', plan:true, emotion:'Calm', note:'',
+    tags:[], mistakes:[], imgs:[], pending:{}, origImgs:[]};
 }
 
 function openWizard(editId){
@@ -1014,6 +1047,7 @@ function openWizard(editId){
       sym:t.sym, dir:t.dir, qty:t.qty, sl:t.slPts, tp:t.tpPts,
       outcome:t.outcome, res:t.resultPts,
       setup:t.setup, grade:t.grade, plan:t.plan, emotion:t.emotion, note:t.note,
+      tags:[...(t.tags||[])], mistakes:[...(t.mistakes||[])],
       imgs:[...(t.imgs||[])], pending:{}, origImgs:[...(t.imgs||[])]};
   } else {
     wiz=blankWiz();
@@ -1076,8 +1110,44 @@ function wizNum(k,v){
   if(k==='tp'&&wiz.outcome==='tp') wiz.res=wiz.tp??null;
   if(k==='qty') wiz.qty=Math.max(1,Math.round(n)||1);
   updateWizPreview();
+  if(k==='sl'||k==='qty'){ const r=$('w-risk'); if(r) wizRiskCalc(); }
 }
 function wizSet(k,v){ wiz[k]=v; if(['setup','grade','emotion'].includes(k)||k==='plan') renderWizard(); }
+function wizToggleTag(tag){ const i=wiz.tags.indexOf(tag); if(i>=0) wiz.tags.splice(i,1); else wiz.tags.push(tag); renderWizard(); }
+function wizToggleMistake(m){ const i=wiz.mistakes.indexOf(m); if(i>=0) wiz.mistakes.splice(i,1); else wiz.mistakes.push(m); renderWizard(); }
+function wizAddTag(){ const v=$('w-tag').value.trim(); if(!v) return; if(!wiz.tags.includes(v)) wiz.tags.push(v); if(!settings.tags.includes(v)) settings.tags.push(v); $('w-tag').value=''; renderWizard(); }
+function wizAddMistake(){ const v=$('w-mist').value.trim(); if(!v) return; if(!wiz.mistakes.includes(v)) wiz.mistakes.push(v); if(!settings.mistakes.includes(v)) settings.mistakes.push(v); $('w-mist').value=''; renderWizard(); }
+function wizApplySuggestion(){ const v=$('w-suggest'); if(v && +v.value>=1){ wiz.qty=+v.value; renderWizard(); } }
+function wizRiskCalc(){
+  const rEl=$('w-risk'), sEl=$('w-suggest'), aEl=$('w-sizeAdvice'); if(!rEl||!sEl||!aEl) return;
+  const risk=parseFloat(rEl.value), pv=pointVal(wiz.sym), slPts=parseFloat(wiz.sl);
+  if(!risk||risk<=0||!pv||!slPts||slPts<=0){ sEl.value=''; aEl.textContent=''; return; }
+  const qty=Math.max(1, Math.floor(risk/(slPts*pv)));
+  sEl.value=qty;
+  const adv=[];
+  const risk$=slPts*pv*qty;
+  const acctId=(wiz.accts&&wiz.accts[0])||'';
+  const a=acctId?acct(acctId):null;
+  if(a){
+    const s=acctStatus(a);
+    if(a.dailyLoss>0){ const room=a.dailyLoss-Math.max(0,-s.todayNet); if(risk$>room) adv.push('Risk '+fmt$(risk$)+' exceeds today\'s remaining daily-loss room '+fmt$(room)+'.'); }
+    if(a.maxDD>0 && s.buffer>0 && risk$>s.buffer*0.5) adv.push('Risk '+fmt$(risk$)+' is over half your drawdown buffer '+fmt$(s.buffer)+'.');
+    if(a.maxDD>0 && s.buffer<=0) adv.push('Account drawdown is already breached.');
+  } else if(wiz.accts && wiz.accts.length) adv.push('Select an account (step 1) to get rule warnings.');
+  if(qty>1 && risk$>risk+1e-6) adv.push('Rounds down to '+qty+' contract'+(qty>1?'s':'')+' ('+fmt$(risk$)+' of '+fmt$(risk)+' risk).');
+  aEl.innerHTML = adv.map(x=>`<div style="color:var(--gold)">⚠ ${esc(x)}</div>`).join('') || `<div style="color:var(--green)">${qty} contract${qty>1?'s':''} risks ${fmt$(risk$)}.</div>`;
+}
+function openRepeat(){
+  const t=sortTrades(trades).slice(-1)[0]; if(!t){ openWizard(); return; }
+  wiz={step:1, maxStep:5, editingId:null,
+    accts:(t.acct&&acct(t.acct))?[t.acct]:[],
+    date:todayStr(), time:nowTime(),
+    sym:t.sym, dir:t.dir, qty:t.qty, sl:t.slPts, tp:t.tpPts, outcome:null, res:null,
+    setup:t.setup, grade:t.grade, plan:t.plan, emotion:t.emotion, note:'',
+    tags:[...(t.tags||[])], mistakes:[], imgs:[], pending:{}, origImgs:[]};
+  $('wizTitle').textContent='Log a Trade';
+  $('wizModal').style.display='flex'; document.body.classList.add('lock'); renderWizard();
+}
 
 function updateWizPreview(){
   const el=$('wizPrev'); if(!el) return;
@@ -1174,6 +1244,15 @@ function stepTrade(){
     <div style="flex:1"><label style="color:var(--green)">TP points</label>
       <input type="number" step="any" min="0" inputmode="decimal" placeholder="20" value="${wiz.tp??''}" oninput="wizNum('tp',this.value)"></div>
   </div>
+  <div class="subpanel" style="margin-top:14px">
+    <h3>${ic('i-scale')} Position size</h3>
+    <div style="display:flex; gap:8px; align-items:flex-end">
+      <div style="flex:1"><label>Risk $ per trade</label><input type="number" id="w-risk" step="any" inputmode="decimal" placeholder="200" oninput="wizRiskCalc()"></div>
+      <div style="flex:1"><label>Suggested contracts</label><input type="number" id="w-suggest" readonly style="font-weight:800"></div>
+      <button class="ghost" style="flex:none" onclick="wizApplySuggestion()">Use</button>
+    </div>
+    <div id="w-sizeAdvice" style="font-size:12px; margin-top:8px"></div>
+  </div>
   <h4>Outcome</h4>
   <div class="btnrow big">
     <button class="${wiz.outcome==='tp'?'on-tp':''}" onclick="wizOutcome('tp')">TP hit ✓</button>
@@ -1204,6 +1283,22 @@ function stepContext(){
   <h4>Emotion going in</h4>
   <div class="optgrid" style="grid-template-columns:repeat(auto-fill,minmax(96px,1fr))">${EMOTIONS.map(e=>
     `<button style="font-size:12.5px; font-weight:600" class="${wiz.emotion===e?'sel':''}" onclick="wizSet('emotion','${e}')">${e}</button>`).join('')}
+  </div>
+  <h4>Tags <span class="sub" style="display:inline">— labels for filtering (news, after 10am…)</span></h4>
+  <div class="optgrid" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr))">${settings.tags.map(t=>
+    `<button style="font-size:12px; font-weight:600" class="${wiz.tags.includes(t)?'sel':''}" onclick="wizToggleTag('${esc(t).replace(/'/g,"\\'")}')">${esc(t)}</button>`).join('')}
+  </div>
+  <div style="display:flex; gap:8px; margin-top:8px">
+    <input type="text" id="w-tag" placeholder="New tag" style="flex:1">
+    <button class="ghost" style="flex:none" onclick="wizAddTag()">Add</button>
+  </div>
+  <h4>Mistakes <span class="sub" style="display:inline">— what went wrong (optional)</span></h4>
+  <div class="optgrid" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr))">${settings.mistakes.map(m=>
+    `<button style="font-size:12px; font-weight:600" class="${wiz.mistakes.includes(m)?'sel':''}" onclick="wizToggleMistake('${esc(m).replace(/'/g,"\\'")}')">${esc(m)}</button>`).join('')}
+  </div>
+  <div style="display:flex; gap:8px; margin-top:8px">
+    <input type="text" id="w-mist" placeholder="New mistake" style="flex:1">
+    <button class="ghost" style="flex:none" onclick="wizAddMistake()">Add</button>
   </div>`;
 }
 
@@ -1223,7 +1318,7 @@ function stepNote(){
     <div class="rrow"><span>Bracket</span><b>SL ${pts(wiz.sl)} / TP ${pts(wiz.tp)} pts</b></div>
     <div class="rrow"><span>Outcome</span><b>${wiz.outcome?wiz.outcome.toUpperCase():'—'} · ${wiz.res!=null?(wiz.res>0?'+':'')+pts(wiz.res)+' pts':'—'}</b></div>
     <div class="rrow"><span>Net P&L ${wiz.accts.length>1?'(per account)':''}</span><b class="${c?cls(c.net):''}">${c?fmt$(c.net):'—'}${c&&c.r!=null?' · '+c.r.toFixed(2)+'R':''}</b></div>
-    <div class="rrow"><span>Context</span><b>${esc(wiz.setup)} · ${wiz.grade} · ${wiz.plan?'Plan ✓':'Plan ✗'} · ${esc(wiz.emotion)}</b></div>
+    <div class="rrow"><span>Context</span><b>${esc(wiz.setup)} · ${wiz.grade} · ${wiz.plan?'Plan ✓':'Plan ✗'} · ${esc(wiz.emotion)}${wiz.tags&&wiz.tags.length?'<br><span style="color:var(--accent)">'+esc(wiz.tags.join(' · '))+'</span>':''}${wiz.mistakes&&wiz.mistakes.length?'<br><span style="color:var(--red)">⚠ '+esc(wiz.mistakes.join(' · '))+'</span>':''}</b></div>
     ${wiz.accts.length>1?`<div class="rrow"><span>Will be logged to</span><b>${n} accounts (${fmt$(c?c.net*n:0)} total)</b></div>`:''}
   </div>`;
 }
@@ -1236,6 +1331,7 @@ function saveWizard(){
     date:wiz.date||todayStr(), time:wiz.time||'', sym:wiz.sym, dir:wiz.dir, qty:wiz.qty,
     slPts:wiz.sl??null, tpPts:wiz.tp??null, outcome:wiz.outcome, resultPts:+(+wiz.res).toFixed(4),
     setup:wiz.setup, grade:wiz.grade, plan:wiz.plan, emotion:wiz.emotion, note:(wiz.note||'').trim(), imgs,
+    tags:[...(wiz.tags||[])], mistakes:[...(wiz.mistakes||[])],
     gross:+c.gross.toFixed(2), comm:+c.comm.toFixed(2), net:+c.net.toFixed(2), r:c.r==null?null:+c.r.toFixed(2)
   };
   const pend=wiz.pending||{}, orig=wiz.origImgs||[];
@@ -1250,6 +1346,10 @@ function saveWizard(){
   }
   Object.keys(pend).forEach(id=>{ if(imgs.includes(id)) imgSave(id, pend[id]); });
   orig.filter(id=>!imgs.includes(id)).forEach(id=>{ if(imgRefCount(id)===0) imgDelete(id); });
+  (base.tags||[]).forEach(tag=>{ if(tag && !settings.tags.includes(tag)) settings.tags.push(tag); });
+  (base.mistakes||[]).forEach(m=>{ if(m && !settings.mistakes.includes(m)) settings.mistakes.push(m); });
+  settings.lastTrade = {sym:base.sym, dir:base.dir, qty:base.qty, setup:base.setup};
+  (wiz.accts||[]).forEach(id=>{ const a=acct(id); if(a) a.tpl={sym:base.sym, dir:base.dir, qty:base.qty, setup:base.setup}; });
   persist(); closeWizard(); renderAll();
 }
 
@@ -1298,7 +1398,7 @@ function tradeRowHTML(t, withActions){
     <td><span class="tag ${t.grade}">${t.grade}</span></td>
     <td>${t.plan?'✓':'<span class="neg">✗</span>'}</td>
     <td>${esc(t.emotion)}</td>
-    <td class="note-cell" title="${esc(t.note)}">${(t.imgs&&t.imgs.length)?`<button class="iconbtn" style="padding:2px 4px" onclick="viewShots(${t.id})" title="${t.imgs.length} screenshot${t.imgs.length>1?'s':''}">${ic('i-img')}</button> `:''}${esc(t.note)}</td>
+    <td class="note-cell" title="${esc(t.note)}">${(t.imgs&&t.imgs.length)?`<button class="iconbtn" style="padding:2px 4px" onclick="viewShots(${t.id})" title="${t.imgs.length} screenshot${t.imgs.length>1?'s':''}">${ic('i-img')}</button> `:''}${(t.mistakes&&t.mistakes.length)?`<span title="${esc(t.mistakes.join(', '))}" style="color:var(--red)">⚠</span> `:''}${(t.tags&&t.tags.length)?`<span title="${esc(t.tags.join(', '))}" style="color:var(--accent)">#${t.tags.length}</span> `:''}${esc(t.note)}</td>
     ${withActions?`<td><button class="iconbtn" onclick="editTrade(${t.id})" title="Edit">${ic('i-edit')}</button><button class="iconbtn danger" onclick="deleteTrade(${t.id})" title="Delete">${ic('i-trash')}</button></td>`:''}
   </tr>`;
 }
@@ -1439,6 +1539,27 @@ function acctMiniHTML(a){
   </div>`;
 }
 function pickAcct(id){ $('d-acct').value=id; renderDashboard(); }
+function acctCompareHTML(){
+  const rows = settings.accounts.map(a=>{ const s=acctStatus(a); const st=stats(trades.filter(t=>t.acct===a.id)); return {a,s,st}; });
+  let html='<table><thead><tr><th>Account</th><th>Balance</th><th>Net P&L</th><th>Win rate</th><th>Trades</th><th>DD room</th><th>Target</th><th>Consistency</th><th>Status</th></tr></thead><tbody>';
+  html+=rows.map(r=>{
+    const status = r.s.blown?'BLOWN':(r.s.passed?'PASSED':'');
+    const consist = r.s.consistLimit>0 && r.s.bestDay>0 ? (r.s.consistOk?'OK':'<span class="neg">'+r.s.consistPct.toFixed(0)+'%</span>') : '—';
+    return `<tr>
+      <td><b>${esc(r.a.name)}</b></td>
+      <td class="${cls(r.s.profit)}">${fmt$0(r.s.bal)}</td>
+      <td class="${cls(r.st.net)}">${fmt$(r.st.net)}</td>
+      <td>${r.st.winRate.toFixed(0)}%</td>
+      <td>${r.st.n}</td>
+      <td class="${r.s.buffer<r.a.maxDD*0.25?'neg':''}">${r.a.maxDD>0?fmt$0(r.s.buffer):'—'}</td>
+      <td>${r.a.target>0?clamp(r.s.cycle/r.a.target*100,0,100).toFixed(0)+'%':'—'}</td>
+      <td>${consist}</td>
+      <td>${status?`<span class="status-badge ${r.s.blown?'blown':'pass'}">${status}</span>`:'—'}</td>
+    </tr>`;
+  }).join('');
+  html+='</tbody></table>';
+  return html;
+}
 
 /* ================= DASHBOARD ================= */
 function stats(list){
@@ -1479,6 +1600,10 @@ function renderDashboard(){
   }
   $('acctArea').innerHTML=acctHtml;
 
+  const cmpPanel=$('acctComparePanel');
+  if(sel==='' && settings.accounts.length>1){ cmpPanel.style.display=''; $('acctCompare').innerHTML = acctCompareHTML(); }
+  else if(cmpPanel) cmpPanel.style.display='none';
+
   const s = stats(list);
   $('statCards').innerHTML =
     statCard('i-dollar','g','Net P&L', fmt$(s.net), s.n+' trades', cls(s.net)) +
@@ -1492,6 +1617,10 @@ function renderDashboard(){
   barChart('bySetup', groupBy(list, t=>t.setup));
   barChart('bySym', groupBy(list, t=>t.sym));
   barChart('byDay', groupByWeekday(list));
+  barChart('byTag', groupByTags(list));
+  barChart('byMistake', groupByMistakes(list));
+  barChart('bySession', groupBySession(list));
+  barChart('byDayType', groupByDayType(list));
   renderAnalytics(list);
 }
 
@@ -1537,6 +1666,36 @@ function groupByWeekday(list){
   const names=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], m={};
   list.forEach(t=>{ const d=new Date(t.date+'T12:00:00'); const k=names[d.getDay()]; (m[k]=m[k]||{net:0,n:0}); m[k].net+=t.net; m[k].n++; });
   return names.filter(n=>m[n]).map(n=>({label:n, value:m[n].net, count:m[n].n}));
+}
+function groupByTags(list){
+  const m={};
+  list.forEach(t=>(t.tags||[]).forEach(tag=>{ (m[tag]=m[tag]||{net:0,n:0}); m[tag].net+=t.net; m[tag].n++; }));
+  return Object.entries(m).map(([label,v])=>({label, value:v.net, count:v.n})).sort((a,b)=>b.value-a.value);
+}
+function groupByMistakes(list){
+  const m={};
+  list.forEach(t=>(t.mistakes||[]).forEach(mk=>{ (m[mk]=m[mk]||{net:0,n:0}); m[mk].net+=t.net; m[mk].n++; }));
+  return Object.entries(m).map(([label,v])=>({label, value:v.net, count:v.n})).sort((a,b)=>a.value-b.value);
+}
+function sessionOf(timeStr){
+  if(!timeStr) return 'No time';
+  const h=+String(timeStr).slice(0,2);
+  if(h<8) return 'Overnight';
+  if(h<11) return 'Open';
+  if(h<14) return 'Midday';
+  if(h<17) return 'Close';
+  return 'After hours';
+}
+function groupBySession(list){
+  const order=['Overnight','Open','Midday','Close','After hours','No time'];
+  const m={};
+  list.forEach(t=>{ const k=sessionOf(t.time); (m[k]=m[k]||{net:0,n:0}); m[k].net+=t.net; m[k].n++; });
+  return order.filter(n=>m[n]).map(n=>({label:n, value:m[n].net, count:m[n].n}));
+}
+function groupByDayType(list){
+  const m={};
+  list.forEach(t=>{ const k=settings.newsDays[t.date]?'News day':'Normal day'; (m[k]=m[k]||{net:0,n:0}); m[k].net+=t.net; m[k].n++; });
+  return Object.entries(m).map(([label,v])=>({label, value:v.net, count:v.n})).sort((a,b)=>b.value-a.value);
 }
 function barChart(id, data){
   const el=$(id);
@@ -1620,11 +1779,35 @@ function renderInsights(list){
     const man=list.filter(t=>t.outcome==='manual');
     out.push(insightHTML('','i-zap',`<b>Manual exits:</b> ${mN} of ${list.length} trades closed manually, averaging <b class="${cls(avg(man.map(t=>t.net)))}">${fmt$(avg(man.map(t=>t.net)))}</b>. Compare that against letting brackets play out (${tpN} TP / ${slN} SL).`));
   }
+  const bySess=groupBySession(list).filter(d=>d.count>=3);
+  if(bySess.length){ const worstS=bySess.reduce((a,b)=>a.value<b.value?a:b); if(worstS.value<0) out.push(insightHTML('warn','i-clock',`<b>Session leak:</b> the ${esc(worstS.label)} session costs you <b class="neg">${fmt$(worstS.value)}</b> across ${worstS.count} trades.`)); }
+  const newsTrades=list.filter(t=>settings.newsDays[t.date]), normTrades=list.filter(t=>!settings.newsDays[t.date]);
+  if(newsTrades.length>=3 && normTrades.length>=3){
+    const an=avg(newsTrades.map(t=>t.net)), ao=avg(normTrades.map(t=>t.net));
+    out.push(insightHTML(an>ao?'good':'warn','i-pulse',`<b>News days:</b> you average <b class="${cls(an)}">${fmt$(an)}</b> on news days vs <b class="${cls(ao)}">${fmt$(ao)}</b> on normal days.`));
+  }
+  const byMistake=groupByMistakes(list).filter(d=>d.count>=2);
+  if(byMistake.length){ const worstM=byMistake[0]; if(worstM.value<0) out.push(insightHTML('warn','i-warn',`<b>Costly mistake:</b> “${esc(worstM.label)}” has cost you <b class="neg">${fmt$(worstM.value)}</b> over ${worstM.count} trades.`)); }
+  const byTag=groupByTags(list).filter(d=>d.count>=3);
+  if(byTag.length){ const worstT=byTag[byTag.length-1]; if(worstT.value<0) out.push(insightHTML('warn','i-book',`<b>Tag leak:</b> trades tagged “${esc(worstT.label)}” are down <b class="neg">${fmt$(worstT.value)}</b>.`)); }
+  const st2=stats(list);
+  if(st2.curStreak<=-3) out.push(insightHTML('warn','i-shield',`<b>Losing streak:</b> you're on a ${Math.abs(st2.curStreak)}-loss streak — consider sizing down until it breaks.`));
+  const bigLosses=list.filter(t=>t.r!=null && t.r<-2);
+  if(bigLosses.length) out.push(insightHTML('warn','i-target',`<b>Tail risk:</b> ${bigLosses.length} trade${bigLosses.length>1?'s':''} lost more than 2R (${bigLosses.filter(t=>t.mistakes&&t.mistakes.length).length} had a logged mistake).`));
   el.innerHTML = out.length?out.join(''):'<div class="empty">Not enough variety yet — insights appear as patterns emerge.</div>';
 }
 
 /* ================= CALENDAR ================= */
 function calMove(d){ calM+=d; if(calM<0){calM=11;calY--;} if(calM>11){calM=0;calY++;} renderCalendar(); }
+function toggleNewsDay(){
+  const ds=todayStr();
+  if(settings.newsDays[ds]) delete settings.newsDays[ds]; else settings.newsDays[ds]=true;
+  persist(); renderCalendar(); renderDashboard();
+}
+function currentWeekRange(){ const d=new Date(); const start=new Date(d); start.setDate(d.getDate()-d.getDay()); const end=new Date(start); end.setDate(start.getDate()+6); return [dstr(start), dstr(end)]; }
+function currentMonthRange(){ const d=new Date(); return [dstr(new Date(d.getFullYear(),d.getMonth(),1)), dstr(new Date(d.getFullYear(),d.getMonth()+1,0))]; }
+function shareWeek(){ const r=currentWeekRange(); openRangeCard(r[0], r[1], 'W E E K L Y   R E C A P'); }
+function shareMonth(){ const r=currentMonthRange(); openRangeCard(r[0], r[1], 'M O N T H L Y   R E C A P'); }
 function renderCalendar(){
   if(calY===undefined){ const n=new Date(); calY=n.getFullYear(); calM=n.getMonth(); }
   acctOptions($('c-acct'), $('c-acct').value, 'All accounts');
@@ -1641,20 +1824,66 @@ function renderCalendar(){
       if(day<1||day>dim){ weekHtml+='<div class="cal-cell" style="opacity:.25"></div>'; continue; }
       const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
       const d=byDate[ds];
+      const isNews=!!settings.newsDays[ds];
       if(d){ weekNet+=d.net; monthNet+=d.net; monthN+=d.n; weekHas=true;
         weekHtml+=`<div class="cal-cell trades ${d.net>0?'win':(d.net<0?'loss':'')}" onclick="openPnlCard('${ds}')">
-          <div class="d">${day}</div><div class="p ${cls(d.net)}">${fmt$0(d.net)}</div><div class="c">${d.n} trade${d.n>1?'s':''}</div></div>`;
+          <div class="d">${day}${isNews?' <span style="color:var(--gold)">N</span>':''}</div><div class="p ${cls(d.net)}">${fmt$0(d.net)}</div><div class="c">${d.n} trade${d.n>1?'s':''}</div></div>`;
       } else {
-        weekHtml+=`<div class="cal-cell"><div class="d">${day}</div></div>`;
+        weekHtml+=`<div class="cal-cell"><div class="d">${day}${isNews?' <span style="color:var(--gold)">N</span>':''}</div></div>`;
       }
     }
     weekHtml+=weekHas?`<div class="cal-week"><div>Week</div><div class="p ${cls(weekNet)}">${fmt$0(weekNet)}</div></div>`:'<div class="cal-week"></div>';
     html+=weekHtml;
   }
   $('calTitle').innerHTML=`${months[calM]} ${calY} · <span class="${cls(monthNet)}">${fmt$0(monthNet)}</span> <span style="color:var(--muted);font-weight:400">(${monthN})</span>`;
+  const nd=$('newsDayBtn'); if(nd) nd.innerHTML = settings.newsDays[todayStr()] ? ic('i-warn')+'Today: news day' : ic('i-cal')+'Mark today news';
   $('calGrid').innerHTML=html;
 }
 function dayDrill(ds){ switchTab('history'); $('h-date').value=ds; renderHistory(); }
+
+/* ================= GUIDED REVIEW (5R) ================= */
+const REV_CHECKS=['Followed my plan on every trade','Position sizes respected my risk rules','Journaled every trade same-day','No revenge or emotional trading'];
+let revType='daily';
+function periodRange(type){
+  if(type==='daily'){ const ds=todayStr(); return [ds, ds, 'Today '+ds]; }
+  if(type==='weekly'){ const r=currentWeekRange(); return [r[0], r[1], 'Week '+r[0]+' → '+r[1]]; }
+  const r=currentMonthRange(); return [r[0], r[1], 'Month '+r[0].slice(0,7)];
+}
+function reviewStats(type){
+  const [s,e]=periodRange(type);
+  const list=trades.filter(t=>t.date>=s && t.date<=e);
+  const st=stats(list);
+  const planN=list.filter(t=>t.plan).length;
+  return {list, st, planPct: list.length?Math.round(planN/list.length*100):0};
+}
+function openReview(){ revType='daily'; $('revModal').style.display='flex'; renderReview(); }
+function setRevType(t){ revType=t; renderReview(); }
+function renderReview(){
+  const rs=reviewStats(revType);
+  const label=periodRange(revType)[2];
+  $('revTypeBtns').innerHTML = ['daily','weekly','monthly'].map(t=>`<button class="${revType===t?'on':''}" onclick="setRevType('${t}')">${t[0].toUpperCase()+t.slice(1)}</button>`).join('');
+  $('revSummary').innerHTML = `<div class="review">
+    <div class="rrow"><span>Period</span><b>${esc(label)}</b></div>
+    <div class="rrow"><span>Trades</span><b>${rs.st.n}</b></div>
+    <div class="rrow"><span>Net P&L</span><b class="${cls(rs.st.net)}">${fmt$(rs.st.net)}</b></div>
+    <div class="rrow"><span>Win rate</span><b>${rs.st.winRate.toFixed(0)}%</b></div>
+    <div class="rrow"><span>Plan followed</span><b>${rs.planPct}%</b></div>
+  </div>`;
+  $('revChecks').innerHTML = REV_CHECKS.map((c,i)=>`<div class="checkline"><input type="checkbox" id="rev-c${i+1}"><span>${c}</span></div>`).join('');
+  $('revHistory').innerHTML = reviews.slice().reverse().slice(0,10).map(rv=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;font-size:12px;border-bottom:1px solid var(--border-soft)"><span>${esc(rv.label)}</span><b class="${cls(rv.net)}">${fmt$(rv.net)}</b><span style="color:var(--muted)">${esc((rv.note||'').slice(0,40))}</span></div>`).join('') || '<div style="color:var(--muted);font-size:12px;padding:6px 0">No reviews yet.</div>';
+}
+function saveReview(){
+  const rs=reviewStats(revType);
+  const label=periodRange(revType)[2];
+  const flags=REV_CHECKS.filter((_,i)=>{ const el=$('rev-c'+(i+1)); return el&&el.checked; });
+  const note=($('rev-note').value||'').trim();
+  reviews.push({id:Date.now(), date:todayStr(), type:revType, label, net:rs.st.net, n:rs.st.n, flags, note});
+  persistReviews();
+  $('rev-note').value='';
+  renderReview();
+  toast('Review saved');
+}
+function closeReview(){ $('revModal').style.display='none'; }
 
 /* ================= HISTORY ================= */
 function renderHistory(){
@@ -1994,7 +2223,9 @@ function buildImport(text){
     plan:pickCol(heads,['followedplan','plan']),
     emotion:pickCol(heads,['emotion','mood']),
     note:pickCol(heads,['note','notes','comment','comments','description']),
-    acct:pickCol(heads,['account','accountname','acct'])
+    acct:pickCol(heads,['account','accountname','acct']),
+    tags:pickCol(heads,['tags','tag']),
+    mistakes:pickCol(heads,['mistakes','mistake'])
   };
   if(col.date<0||col.sym<0||(col.net<0&&col.pts<0)){
     alert('Could not detect the required columns.\nNeed at least: Date, Symbol, and Net P&L or Result points.\n\nFound: '+rows[0].join(', '));
@@ -2033,6 +2264,8 @@ function buildImport(text){
     const emoRaw=col.emotion>=0?String(r[col.emotion]).trim():'';
     const emotion=EMOTIONS.find(e=>e.toLowerCase()===emoRaw.toLowerCase())||'Neutral';
     const note=col.note>=0?String(r[col.note]).trim().slice(0,400):'';
+    const tags=col.tags>=0?String(r[col.tags]).split(/[;|]/).map(x=>x.trim()).filter(Boolean).slice(0,12):[];
+    const mistakes=col.mistakes>=0?String(r[col.mistakes]).split(/[;|]/).map(x=>x.trim()).filter(Boolean).slice(0,12):[];
     let acctId='';
     if(col.acct>=0&&String(r[col.acct]).trim()){
       const an=String(r[col.acct]).trim().toLowerCase();
@@ -2040,7 +2273,7 @@ function buildImport(text){
       if(a) acctId=a.id;
     }
     const t={date:dt.date, time:dt.time||'', acct:acctId, sym, dir, qty, slPts:sl, tpPts:tp, outcome,
-      resultPts:+(+resPts).toFixed(4), setup, grade, plan, emotion, note,
+      resultPts:+(+resPts).toFixed(4), setup, grade, plan, emotion, note, tags, mistakes,
       gross, comm:+c.comm.toFixed(2), net, r:rr};
     t._dup = trades.some(x=>x.date===t.date && x.sym===t.sym && x.qty===t.qty && (x.time||'')===(t.time||'') && Math.abs(x.net-t.net)<0.01);
     ok.push(t);
@@ -2083,6 +2316,8 @@ function doImport(){
     rec.id=base+(n++);
     if(ov!=='auto') rec.acct=ov;
     if(rec.setup&&!settings.setups.includes(rec.setup)) settings.setups.push(rec.setup);
+    (rec.tags||[]).forEach(tag=>{ if(tag && !settings.tags.includes(tag)) settings.tags.push(tag); });
+    (rec.mistakes||[]).forEach(m=>{ if(m && !settings.mistakes.includes(m)) settings.mistakes.push(m); });
     trades.push(rec);
   }
   closeImport();
@@ -2099,10 +2334,10 @@ function download(name, text, type){
   setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 }
 function exportCSV(){
-  const head='Date,Time,Account,Symbol,Direction,Contracts,SL_pts,TP_pts,Outcome,Result_pts,Gross,Commission,Net,R,Setup,Grade,FollowedPlan,Emotion,Note';
+  const head='Date,Time,Account,Symbol,Direction,Contracts,SL_pts,TP_pts,Outcome,Result_pts,Gross,Commission,Net,R,Setup,Grade,FollowedPlan,Emotion,Tags,Mistakes,Note';
   const rows=sortTrades(trades).map(t=>[t.date,t.time,csvq(t.acct?acctName(t.acct):''),t.sym,t.dir==='L'?'Long':'Short',t.qty,
     t.slPts??'',t.tpPts??'',t.outcome.toUpperCase(),t.resultPts,t.gross,t.comm,t.net,t.r??'',
-    csvq(t.setup),t.grade,t.plan?'Yes':'No',t.emotion,csvq(t.note)].join(','));
+    csvq(t.setup),t.grade,t.plan?'Yes':'No',t.emotion,csvq((t.tags||[]).join(';')),csvq((t.mistakes||[]).join(';')),csvq(t.note)].join(','));
   download('trading-journal-'+todayStr()+'.csv', head+'\n'+rows.join('\n'), 'text/csv');
 }
 function csvq(s){ s=String(s==null?'':s); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }
@@ -2116,6 +2351,10 @@ function sanitizeSettings(s){
   if(!Array.isArray(s.accounts)) s.accounts=[];
   if(!Array.isArray(s.lastAccts)) s.lastAccts=[];
   if(!Array.isArray(s.setups)) s.setups=[];
+  if(!Array.isArray(s.tags)) s.tags=[];
+  if(!Array.isArray(s.mistakes) || !s.mistakes.length) s.mistakes=structuredClone(DEFAULT_SETTINGS.mistakes);
+  if(!s.newsDays || typeof s.newsDays!=='object' || Array.isArray(s.newsDays)) s.newsDays={};
+  if(!s.lastTrade || typeof s.lastTrade!=='object') s.lastTrade=null;
   if(!Array.isArray(s.instruments) || !s.instruments.length) s.instruments=structuredClone(DEFAULT_SETTINGS.instruments);
   else s.instruments = s.instruments.filter(i=>i && i.sym && isFinite(+i.ts) && +i.ts>0 && isFinite(+i.tv) && +i.tv>0);
   if(!Array.isArray(s.instruments) || !s.instruments.length) s.instruments=structuredClone(DEFAULT_SETTINGS.instruments);
@@ -2145,10 +2384,12 @@ function wipeAll(){
 }
 
 /* ================= INIT ================= */
+let booted=false;
 function renderAll(){ renderStrip(); renderToday();
   const active=document.querySelector('nav button.active').dataset.tab;
   if(active==='dashboard')renderDashboard(); if(active==='calendar')renderCalendar(); if(active==='history')renderHistory();
   if(active==='settings')renderSettings();
+  if(booted){ refreshRiskAlerts(); updateWidget(); }
 }
 function init(){
   renderAll(); renderSettings();
@@ -2307,9 +2548,9 @@ function updateRewardUI(){
 let pnlCanvas=null, pnlDate='';
 function rrect(x,px,py,w,h,r){ x.beginPath(); x.moveTo(px+r,py); x.arcTo(px+w,py,px+w,py+h,r); x.arcTo(px+w,py+h,px,py+h,r); x.arcTo(px,py+h,px,py,r); x.arcTo(px,py,px+w,py,r); x.closePath(); }
 function pnlMoney(v){ return (v<0?'-$':(v>0?'+$':'$'))+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function drawPnlCard(ds){
+function drawPnlCard(ds, rangeList, rangeTitle, rangeDate){
   const sel=$('c-acct')?$('c-acct').value:'';
-  const list=byAcct(trades,sel).filter(t=>t.date===ds);
+  const list=rangeList||byAcct(trades,sel).filter(t=>t.date===ds);
   const n=list.length, wins=list.filter(t=>t.net>0).length, losses=list.filter(t=>t.net<0).length;
   const net=list.reduce((a,t)=>a+t.net,0), wr=n?Math.round(wins/n*100):0;
   const useAcct=list.some(t=>t.acct);
@@ -2347,9 +2588,9 @@ function drawPnlCard(ds){
   // date block
   x.textAlign='right';
   x.font='800 16px '+F; x.fillStyle='#22d3ee';
-  x.fillText('D A I L Y   R E C A P', W-56, 62);
+  x.fillText(rangeTitle||'D A I L Y   R E C A P', W-56, 62);
   x.font='600 22px '+F; x.fillStyle=MUT;
-  x.fillText(new Date(ds+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}), W-56, 94);
+  x.fillText(rangeDate||new Date(ds+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}), W-56, 94);
   // left column: stat boxes
   function panel(px,py,w,h){ rrect(x,px,py,w,h,22); x.fillStyle=PAN; x.fill(); rrect(x,px,py,w,h,22); x.strokeStyle=BOR; x.lineWidth=1.5; x.stroke(); }
   panel(48,150,207,110); panel(271,150,207,110);
@@ -2387,6 +2628,15 @@ function drawPnlCard(ds){
 }
 function openPnlCard(ds){
   pnlDate=ds; pnlCanvas=drawPnlCard(ds);
+  $('pnlImg').src=pnlCanvas.toDataURL('image/png');
+  $('pnlModal').style.display='flex';
+}
+function openRangeCard(startDs, endDs, label){
+  const sel=$('c-acct')?$('c-acct').value:'';
+  const list=byAcct(trades,sel).filter(t=>t.date>=startDs && t.date<=endDs);
+  if(!list.length){ toast('No trades in this range'); return; }
+  pnlDate=startDs;
+  pnlCanvas=drawPnlCard(startDs, list, label, startDs+' → '+endDs);
   $('pnlImg').src=pnlCanvas.toDataURL('image/png');
   $('pnlModal').style.display='flex';
 }
@@ -2428,7 +2678,8 @@ async function sharePnlCard(){
 
 /* ================= NATIVE FEATURES (Capacitor) ================= */
 const LS_APP='ftj_app';
-let appPrefs = load(LS_APP, {notif:false, notifTime:'17:00', bio:false, autoBk:true, onboard:false});
+let appPrefs = load(LS_APP, {notif:false, notifTime:'17:00', bio:false, autoBk:true, onboard:false, alerts:{dd:true,daily:true,target:true}});
+if(!appPrefs.alerts || typeof appPrefs.alerts!=='object') appPrefs.alerts={dd:true,daily:true,target:true};
 const natPlugins={};
 function P(n){
   const c=window.Capacitor;
@@ -2446,7 +2697,7 @@ function hapt(style){ const H=P('Haptics'); if(H) H.impact({style:style||'LIGHT'
 function saveAppPrefs(){ localStorage.setItem(LS_APP, JSON.stringify(appPrefs)); natMirror(); }
 
 /* --- durable storage: mirror localStorage into native Preferences, restore if WebView data is lost --- */
-const NAT_KEYS=[LS_TRADES,LS_SET,LS_ADNOTICE,LS_APP,LS_ADS,THEME_KEY];
+const NAT_KEYS=[LS_TRADES,LS_SET,LS_REVIEWS,LS_ADNOTICE,LS_APP,LS_ADS,THEME_KEY];
 async function natMirror(){
   const Pref=P('Preferences'); if(!Pref) return;
   try{ for(const k of NAT_KEYS){ const v=localStorage.getItem(k); if(v!=null) await Pref.set({key:k, value:v}); } }catch(e){}
@@ -2588,6 +2839,53 @@ async function applyNotif(){
   }catch(e){ toast('Could not set reminder'); }
 }
 function uiNotifChanged(){ appPrefs.notif=$('ap-notif').checked; appPrefs.notifTime=$('ap-time').value||'17:00'; saveAppPrefs(); applyNotif(); }
+let lastRiskAlert='';
+function riskAlertState(){
+  const alerts=[];
+  const prefs=appPrefs.alerts||{dd:true,daily:true,target:true};
+  for(const a of settings.accounts){
+    const s=acctStatus(a);
+    if(prefs.dd && a.maxDD>0 && !s.blown && s.buffer>0){
+      const pct=s.buffer/a.maxDD*100;
+      if(pct<=25) alerts.push(a.name+' drawdown buffer at '+fmt$0(s.buffer)+' ('+pct.toFixed(0)+'%)');
+    }
+    if(prefs.daily && a.dailyLoss>0){
+      const used=Math.max(0,-s.todayNet);
+      if(used>0 && used>=a.dailyLoss*0.8 && used<a.dailyLoss) alerts.push(a.name+' daily loss '+fmt$0(used)+' of '+fmt$0(a.dailyLoss));
+    }
+    if(prefs.target && a.target>0 && !s.passed && s.cycle>0){
+      const pct=clamp(s.cycle/a.target*100,0,100);
+      if(pct>=90) alerts.push(a.name+' target '+pct.toFixed(0)+'% reached');
+    }
+  }
+  return alerts;
+}
+async function refreshRiskAlerts(){
+  const alerts=riskAlertState();
+  const msg=alerts.join(' | ');
+  if(msg===lastRiskAlert) return;
+  lastRiskAlert=msg;
+  const LN=P('LocalNotifications');
+  if(!LN){ if(alerts.length) toast('Risk alert: '+alerts[0]); return; }
+  try{
+    await LN.cancel({notifications:[{id:2}]});
+    if(alerts.length) await LN.schedule({notifications:[{id:2, title:'Risk alert', body:alerts.slice(0,3).join(' · '), schedule:{at:new Date(Date.now()+1500)}}]});
+  }catch(e){}
+}
+function uiAlertChanged(){
+  appPrefs.alerts={dd:$('ap-alert-dd').checked, daily:$('ap-alert-daily').checked, target:$('ap-alert-target').checked};
+  saveAppPrefs(); refreshRiskAlerts();
+}
+async function updateWidget(){
+  const Pref=P('Preferences'); if(!Pref) return;
+  const today=trades.filter(t=>t.date===todayStr()).reduce((a,t)=>a+t.net,0);
+  let name='', buffer=0;
+  for(const a of settings.accounts){
+    const s=acctStatus(a);
+    if(a.maxDD>0 && (!name || s.buffer<buffer)){ name=a.name; buffer=s.buffer; }
+  }
+  try{ await Pref.set({key:'widgetData', value:JSON.stringify({today, name, buffer, n:trades.length})}); }catch(e){}
+}
 
 /* --- biometric lock --- */
 function bioApi(){ return (window.capacitorBiometricAuth && window.capacitorBiometricAuth.BiometricAuth) || null; }
@@ -2635,6 +2933,9 @@ async function nativeInit(){
   $('ap-time').value=appPrefs.notifTime||'17:00';
   $('ap-bio').checked=!!appPrefs.bio;
   $('ap-autobk').checked=appPrefs.autoBk!==false;
+  $('ap-alert-dd').checked=!!(appPrefs.alerts && appPrefs.alerts.dd!==false);
+  $('ap-alert-daily').checked=!!(appPrefs.alerts && appPrefs.alerts.daily!==false);
+  $('ap-alert-target').checked=!!(appPrefs.alerts && appPrefs.alerts.target!==false);
   updateRewardUI();
   const B=bioApi();
   if(B){
@@ -2733,8 +3034,10 @@ function adNativeBoot(){
   });
   nativeInit().then(()=>{
     /* persist migrated data AFTER the native restore has run — see the NOTE above init() */
+    booted=true;
     persist();
     initAds();
+    refreshRiskAlerts();
     setTimeout(maybeAutoBackup, 1500);
   });
   if(!showNotice) maybeOnboard();
@@ -2795,6 +3098,28 @@ else adNativeBoot();
       <button class="iconbtn" onclick="closeImport()" title="Close"><svg class="ic"><use href="#i-x"/></svg></button>
     </div>
     <div id="impBody"></div>
+  </div>
+</div>
+
+<!-- guided review (5R) -->
+<div id="revModal" class="modal" style="display:none">
+  <div class="wcard">
+    <div class="whead">
+      <b><svg class="ic"><use href="#i-pulse"/></svg>Review</b>
+      <button class="iconbtn" onclick="closeReview()" title="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="btnrow" style="margin-bottom:14px" id="revTypeBtns"></div>
+    <div id="revSummary"></div>
+    <h4 style="font-size:13px;font-weight:700;margin:14px 0 8px">How was the period?</h4>
+    <div id="revChecks"></div>
+    <h4 style="font-size:13px;font-weight:700;margin:14px 0 8px">Reflection</h4>
+    <textarea id="rev-note" maxlength="400" placeholder="What worked? What will you change next?"></textarea>
+    <div class="wfoot">
+      <button class="ghost" onclick="closeReview()">Close</button>
+      <button class="primary" onclick="saveReview()"><svg class="ic"><use href="#i-check"/></svg>Save review</button>
+    </div>
+    <h4 style="font-size:13px;font-weight:700;margin:16px 0 8px">Recent reviews</h4>
+    <div id="revHistory"></div>
   </div>
 </div>
 
