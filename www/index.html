@@ -961,7 +961,8 @@ const cls=v=>v>0?'pos':(v<0?'neg':'flat');
 const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const pts=v=>v==null?'—':(+v).toLocaleString('en-US',{maximumFractionDigits:2});
 const cssV=n=>getComputedStyle(document.documentElement).getPropertyValue('--'+n).trim();
-const todayStr=()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const dstr=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const todayStr=()=>dstr(new Date());
 const nowTime=()=>{ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); };
 function inst(sym){ return settings.instruments.find(i=>i.sym===sym); }
 function pointVal(sym){ const i=inst(sym); return i? i.tv/i.ts : 0; }
@@ -1315,7 +1316,7 @@ function renderToday(){
 function renderStrip(){
   const today = trades.filter(t=>t.date===todayStr()).reduce((a,t)=>a+t.net,0);
   const wk = new Date(); wk.setDate(wk.getDate()-6);
-  const wkStr = wk.toISOString().slice(0,10);
+  const wkStr = dstr(wk);
   const week = trades.filter(t=>t.date>=wkStr).reduce((a,t)=>a+t.net,0);
   const all = trades.reduce((a,t)=>a+t.net,0);
   $('strip').innerHTML = `<span>Today <b class="${cls(today)}">${fmt$(today)}</b></span>
@@ -2581,7 +2582,7 @@ async function applyNotif(){
       const parts=(appPrefs.notifTime||'17:00').split(':');
       await LN.schedule({notifications:[{id:1, title:'The Liquidity Book',
         body:"Market's closed \u2014 log today's trades.",
-        schedule:{on:{hour:+parts[0], minute:+parts[1]}, allowWhileIdle:true}}]});
+        schedule:{on:{hour:+parts[0], minute:+parts[1]}, repeats:true, allowWhileIdle:true}}]});
       toast('Daily reminder set \u2014 '+appPrefs.notifTime);
     } else toast('Reminder off');
   }catch(e){ toast('Could not set reminder'); }
